@@ -1,0 +1,7 @@
+export const ROLE_MESSAGE = {
+  CREATE_ROLE_SUCCESS: 'role.CREATE_ROLE_SUCCESS' as never,
+  UPDATE_ROLE_SUCCESS: 'role.UPDATE_ROLE_SUCCESS' as never,
+  DELETE_ROLE_SUCCESS: 'role.DELETE_ROLE_SUCCESS' as never,
+  ROLE_NOT_FOUND: 'role.ROLE_NOT_FOUND' as never,
+  ROLE_EXISTED: 'role.ROLE_EXISTED' as never,
+};

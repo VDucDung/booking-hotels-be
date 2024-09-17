@@ -1,0 +1,15 @@
+{
+  "CREATE_USER_SUCCESS": "create user successfully",
+  "CREATE_USER_FAIL": "create user failed",
+  "UPDATE_USER_SUCCESS": "update user successfully",
+  "DELETE_USER_SUCCESS": "delete user successfully",
+  "DELETE_USER_FAIL": "you can only delete your account after 30 days",
+  "USER_NOT_FOUND": "the user not found",
+  "PASSWORD": "password must contain at least 8 characters, 1 number and 1 uppercase letter",
+  "INVALID_PASSWORD": "password is not a valid password",
+  "PASSWORD_NOT_MATCH": "confirm password does not match the password",
+  "EMAIL_EXISTED": "this email is already registered with another user",
+  "PHONE_EXISTED": "this phone is already registered with another user",
+  "GET_ME_SUCCESS": "get me successfully",
+  "LOCKED": "your account has been locked"
+}
