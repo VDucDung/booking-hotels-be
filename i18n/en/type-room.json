@@ -1,0 +1,8 @@
+{
+  "CREATE_TYPE_ROOM_SUCCESS": "create type room successfully",
+  "UPDATE_TYPE_ROOM_SUCCESS": "update type room successfully",
+  "DELETE_TYPE_ROOM_SUCCESS": "delete type room successfully",
+  "TYPE_ROOM_NOT_FOUND": "the type room not found",
+  "TYPE_ROOM_EXISTED": "the type room already exists",
+  "TYPE_ROOM_IDS_INVALID": "the type room ids are invalid"
+}

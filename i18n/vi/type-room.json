@@ -1,0 +1,8 @@
+{
+  "CREATE_TYPE_ROOM_SUCCESS": "tạo loại phòng thành công",
+  "UPDATE_TYPE_ROOM_SUCCESS": "cập nhật loại phòng thành công",
+  "DELETE_TYPE_ROOM_SUCCESS": "xóa loại phòng thành công",
+  "TYPE_ROOM_NOT_FOUND": "loại phòng không tồn tại",
+  "TYPE_ROOM_EXISTED": "loại phòng này đã tồn tại",
+  "TYPE_ROOM_IDS_INVALID": "các id của loại phòng không hợp lệ"
+}
