@@ -1,33 +1,22 @@
+import { Hotel } from 'src/modules/hotels/entities/hotel.entity';
 import { User } from 'src/modules/users/entities/user.entity';
 import {
   Entity,
-  Column,
   ManyToOne,
   JoinColumn,
   PrimaryGeneratedColumn,
+  OneToMany,
 } from 'typeorm';
 
 @Entity('favorite')
 export class Favorite {
-  @PrimaryGeneratedColumn('uuid')
+  @PrimaryGeneratedColumn('increment')
   id: string;
 
   @ManyToOne(() => User, (user) => user.favorites)
   @JoinColumn({ name: 'user_id' })
   user: User;
 
-  @Column({ type: 'enum', enum: ['tv', 'movie'] })
-  mediaType: 'tv' | 'movie';
-
-  @Column({ type: 'varchar', length: 255 })
-  mediaId: string;
-
-  @Column({ type: 'varchar', length: 255 })
-  mediaTitle: string;
-
-  @Column({ type: 'varchar', length: 255 })
-  mediaPoster: string;
-
-  @Column({ type: 'float', nullable: false })
-  mediaRate: number;
+  @OneToMany(() => Hotel, (hotel) => hotel.favoriteId)
+  hotels: Hotel[];
 }

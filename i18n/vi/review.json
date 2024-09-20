@@ -1,0 +1,11 @@
+{
+  "CREATE_REVIEW_SUCCESS": "tạo bình luận thành công",
+  "UPDATE_REVIEW_SUCCESS": "cập nhật bình luận thành công",
+  "DELETE_REVIEW_SUCCESS": "xóa bình luận thành công",
+  "DELETE_REVIEW_FAIL": "xóa bình luận thất bại",
+  "REVIEW_NOT_FOUND": "bình luận không tồn tại",
+  "REVIEW_EXISTED": "bình luận này đã tồn tại",
+  "REVIEW_IDS_INVALID": "các id của bình luận không hợp lệ",
+  "GET_LIST_REVIEW_SUCCESS": "lấy danh sách bình luận thành công",
+  "GET_REVIEW_SUCCESS": "lây bình luận thành công"
+}

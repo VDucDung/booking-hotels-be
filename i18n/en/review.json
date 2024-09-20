@@ -1,0 +1,11 @@
+{
+  "CREATE_REVIEW_SUCCESS": "create review successfully",
+  "UPDATE_REVIEW_SUCCESS": "update review successfully",
+  "DELETE_REVIEW_SUCCESS": "delete review successfully",
+  "DELETE_REVIEW_FAIL": "delete review fail",
+  "REVIEW_NOT_FOUND": "the review not found",
+  "REVIEW_EXISTED": "the review already exists",
+  "REVIEW_IDS_INVALID": "the review ids are invalid",
+  "GET_LIST_REVIEW_SUCCESS": "get list review successfully",
+  "GET_REVIEW_SUCCESS": "get review successfully"
+}

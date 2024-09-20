@@ -1,3 +1,4 @@
+import { Hotel } from 'src/modules/hotels/entities/hotel.entity';
 import { User } from 'src/modules/users/entities/user.entity';
 import {
   Entity,
@@ -11,27 +12,30 @@ import {
 
 @Entity('review')
 export class Review {
-  @PrimaryGeneratedColumn('uuid')
+  @PrimaryGeneratedColumn('increment')
   id: string;
 
   @ManyToOne(() => User, (user) => user.reviews)
   @JoinColumn({ name: 'user_id' })
   user: User;
 
-  @Column({ type: 'text' })
-  content: string;
-
-  @Column({ type: 'enum', enum: ['tv', 'movie'] })
-  mediaType: 'tv' | 'movie';
+  @ManyToOne(() => Hotel, (hotel) => hotel.reviews)
+  @JoinColumn({ name: 'hotel_id' })
+  hotelId: string;
 
   @Column({ type: 'varchar', length: 255 })
-  mediaId: string;
+  comment: string;
 
-  @Column({ type: 'varchar', length: 255 })
-  mediaTitle: string;
+  @Column({ type: 'text', array: true })
+  images: string[];
 
-  @Column({ type: 'varchar', length: 255 })
-  mediaPoster: string;
+  @Column({
+    type: 'enum',
+    enum: ['1', '2', '3', '4', '5'],
+    default: null,
+    nullable: true,
+  })
+  reating: string;
 
   @CreateDateColumn({ name: 'created_at' })
   createdAt: Date;
