@@ -2,3 +2,8 @@ export * from './user.message';
 export * from './common.message';
 export * from './permission.message';
 export * from './auth.message';
+export * from './hotel.message';
+export * from './type-room.message';
+export * from './room.message';
+export * from './ticket.message';
+export * from './review.message';

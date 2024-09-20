@@ -1,0 +1,8 @@
+{
+  "CREATE_HOTEL_SUCCESS": "tạo khách sạn thành công",
+  "UPDATE_HOTEL_SUCCESS": "cập nhật khách sạn thành công",
+  "DELETE_HOTEL_SUCCESS": "xóa khách sạn thành công",
+  "HOTEL_NOT_FOUND": "khách sạn không tồn tại",
+  "HOTEL_EXISTED": "khách sạn này đã tồn tại",
+  "HOTEL_IDS_INVALID": "các id của khách sạn không hợp lệ"
+}

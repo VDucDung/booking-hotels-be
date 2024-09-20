@@ -1,0 +1,8 @@
+{
+  "CREATE_HOTEL_SUCCESS": "create hotel successfully",
+  "UPDATE_HOTEL_SUCCESS": "update hotel successfully",
+  "DELETE_HOTEL_SUCCESS": "delete hotel successfully",
+  "HOTEL_NOT_FOUND": "the hotel not found",
+  "HOTEL_EXISTED": "the hotel already exists",
+  "HOTEL_IDS_INVALID": "the hotel ids are invalid"
+}

@@ -18,6 +18,12 @@ import { EmailModule } from './modules/email/email.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { RoleModule } from './modules/roles/role.module';
 import { UploadModule } from './modules/uploads/upload.module';
+import { HotelModule } from './modules/hotels/hotel.module';
+import { RoomModule } from './modules/room/room.module';
+import { TicketModule } from './modules/tickets/ticket.module';
+import { TypeRoomModule } from './modules/type_room/typeRoom.module';
+import { FavoriteModule } from './modules/favorites/favorite.module';
+import { ReviewModule } from './modules/review/review.module';
 
 @Module({
   imports: [
@@ -55,6 +61,12 @@ import { UploadModule } from './modules/uploads/upload.module';
     EmailModule,
     RoleModule,
     UploadModule,
+    HotelModule,
+    RoomModule,
+    TicketModule,
+    TypeRoomModule,
+    FavoriteModule,
+    ReviewModule,
   ],
   controllers: [AppController],
   providers: [AppService],
