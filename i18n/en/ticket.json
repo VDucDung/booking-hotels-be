@@ -1,0 +1,10 @@
+{
+  "CREATE_TICKET_SUCCESS": "create ticket successfully",
+  "UPDATE_TICKET_SUCCESS": "update ticket successfully",
+  "DELETE_TICKET_SUCCESS": "delete ticket successfully",
+  "TICKET_NOT_FOUND": "the ticket not found",
+  "TICKET_EXISTED": "the ticket already exists",
+  "TICKET_IDS_INVALID": "the ticket ids are invalid",
+  "GET_LIST_TICKET_SUCCESS": "get list ticket successfully",
+  "GET_TICKET_SUCCESS": "get ticket successfully"
+}
