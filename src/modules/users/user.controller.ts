@@ -171,4 +171,22 @@ export class UserController {
       message: this.localesService.translate(USER_MESSAGE.UPDATE_USER_SUCCESS),
     };
   }
+
+  @UseGuards(AuthGuard)
+  @Post(':userId/lock')
+  async lockUser(
+    @Param('userId') userId: number,
+  ): Promise<{ statusCode: number; message: string }> {
+    const lockeduser = await this.userService.lockUserById(userId);
+    if (!lockeduser) {
+      ErrorHelper.AppErrorException(
+        HttpStatus.BAD_REQUEST,
+        this.localesService.translate(USER_MESSAGE.LOCKED_USER_FAIL),
+      );
+    }
+    return {
+      statusCode: HttpStatus.OK,
+      message: this.localesService.translate(USER_MESSAGE.LOCKED_USER_SUCCESS),
+    };
+  }
 }

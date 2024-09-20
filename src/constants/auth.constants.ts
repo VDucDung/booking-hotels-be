@@ -9,7 +9,7 @@ export const SALT_ROUNDS = 7;
 
 export const HASH_KEY_AES = process.env.HASH_KEY_AES;
 
-export const nodeEnv = process.env.NODE_ENV || 'development';
+export const nodeEnv = process.env.NODE_ENV;
 
 export const URL_HOST = {
   production: process.env.HOST_PRODUCTION,

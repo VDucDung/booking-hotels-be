@@ -89,7 +89,7 @@ export class AuthService {
       SECRET.tokenVerify,
     );
 
-    const linkVerify = `${URL_HOST.development}/auth/verify?token=${tokenVerify}`;
+    const linkVerify = `${URL_HOST.production}/auth/verify?token=${tokenVerify}`;
 
     await this.emailService.sendEmail({
       emails: email,

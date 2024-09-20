@@ -1,7 +1,7 @@
 export enum ERole {
   ADMIN = 'ADMIN',
   USER = 'USER',
-  MANAGER = 'MANAGER',
+  PARTNER = 'PARTNER',
 }
 
 export const enum EUserPermission {
@@ -23,4 +23,10 @@ export const enum EUserPermission {
   GET_PERMISSION = 'get_permission',
   UPDATE_PERMISSION = 'update_permission',
   DELETE_PERMISSION = 'delete_permission',
+  // hotels
+  CREATE_HOTEL = 'create_hotel',
+  GET_HOTELS = 'get_hotels',
+  GET_HOTEL = 'get_hotel',
+  UPDATE_HOTEL = 'update_hotel',
+  DELETE_HOTEL = 'delete_hotel',
 }

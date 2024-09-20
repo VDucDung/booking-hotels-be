@@ -17,6 +17,7 @@ import { USER_AVATAR_DEFAULT } from 'src/constants';
 import { Role } from 'src/modules/roles/entities/role.entity';
 import { Review } from 'src/modules/review/entities/review.entity';
 import { Favorite } from 'src/modules/favorites/entities/favorite.entity';
+import { Hotel } from 'src/modules/hotels/entities/hotel.entity';
 
 @Entity()
 export class User {
@@ -75,8 +76,11 @@ export class User {
   @OneToMany(() => Review, (review) => review.user)
   reviews: Review[];
 
-  @OneToMany(() => Review, (favorite) => favorite.user)
+  @OneToMany(() => Favorite, (favorite) => favorite.user)
   favorites: Favorite[];
+
+  @OneToMany(() => Hotel, (hotel) => hotel.partnerId)
+  hotels: Hotel[];
 
   @CreateDateColumn({ name: 'created_at' })
   createdAt: Date;

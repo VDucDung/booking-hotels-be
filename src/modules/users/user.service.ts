@@ -11,10 +11,16 @@ import { LocalesService } from '../locales/locales.service';
 import { ChangePasswordDto } from './dto/change-password.dto';
 import { GetUsersDto } from './dto/get-users.dto';
 import { IPagination } from 'src/interfaces';
-import { LIMIT_DEFAULT, PAGE_DEFAULT, SORT_DEFAULT } from 'src/constants';
+import {
+  ADMIN,
+  LIMIT_DEFAULT,
+  PAGE_DEFAULT,
+  SORT_DEFAULT,
+} from 'src/constants';
 import { ROLE_MESSAGE } from 'src/messages/role.message';
 import { CommonHelper } from 'src/helpers/common.helper';
 import { Role } from '../roles/entities/role.entity';
+import { console } from 'inspector';
 
 @Injectable()
 export class UserService {
@@ -235,6 +241,51 @@ export class UserService {
       total,
       items,
     };
+  }
+
+  async lockUserById(userId: number): Promise<User> {
+    const user = await this.getUserById(userId);
+
+    if (!user) {
+      ErrorHelper.NotFoundException(
+        this.localesService.translate(USER_MESSAGE.USER_NOT_FOUND),
+      );
+    }
+
+    Object.assign(user, { isLocked: !user.isLocked });
+
+    await this.userRepository.save(user);
+    user.password = undefined;
+
+    return user;
+  }
+
+  async createAdmin(): Promise<void> {
+    const { email, password, fullname } = ADMIN;
+    const admin = await this.getUserByEmail(email);
+
+    if (!admin) {
+      let role = await this.roleRepository.findOne({
+        where: { name: ERole.ADMIN },
+      });
+      console.log(role);
+
+      if (!role) {
+        role = await this.roleRepository.save({ name: ERole.ADMIN });
+      }
+
+      const user = await this.userRepository.create({
+        email,
+        fullname,
+        username: fullname,
+        password,
+        role,
+        isVerify: true,
+        normalizedEmail: emailFormatter(email),
+      });
+
+      await this.userRepository.save(user);
+    }
   }
 
   private async isEmailTaken(

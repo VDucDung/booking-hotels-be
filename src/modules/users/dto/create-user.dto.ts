@@ -14,9 +14,6 @@ import { COMMON_MESSAGE } from 'src/messages';
 import { Role } from 'src/modules/roles/entities/role.entity';
 
 export class CreateUserDto {
-  @MaxLength(30, {
-    message: i18nValidationMessage(COMMON_MESSAGE.MAX),
-  })
   @IsEmail({}, { message: i18nValidationMessage(COMMON_MESSAGE.INVALID_EMAIL) })
   @ApiProperty({
     name: 'email',
@@ -24,6 +21,15 @@ export class CreateUserDto {
     required: true,
   })
   email: string;
+
+  @IsOptional()
+  @IsEmail({}, { message: i18nValidationMessage(COMMON_MESSAGE.INVALID_EMAIL) })
+  @ApiProperty({
+    name: 'normalizedEmail',
+    type: String,
+    required: false,
+  })
+  normalizedEmail?: string;
 
   @IsOptional()
   @MaxLength(30, {

@@ -67,13 +67,13 @@ export class AuthController {
         SECRET.tokenVerify,
       ));
     } catch {
-      return res.redirect(`${URL_HOST.development}/not-found`);
+      return res.redirect(`${URL_HOST.production}/not-found`);
     }
 
     const user = await this.userService.getUserByEmail(payload.email);
 
     if (user?.isVerify) {
-      return res.redirect(`${URL_HOST.development}/auth/login`);
+      return res.redirect(`${URL_HOST.production}/auth/login`);
     }
 
     if (isExpired) {

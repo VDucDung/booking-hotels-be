@@ -2,6 +2,8 @@
   "CREATE_USER_SUCCESS": "create user successfully",
   "CREATE_USER_FAIL": "create user failed",
   "UPDATE_USER_SUCCESS": "update user successfully",
+  "LOCKED_USER_SUCCESS": "lock user successfully",
+  "LOCKED_USER_FAIL": "lock user failed",
   "DELETE_USER_SUCCESS": "delete user successfully",
   "DELETE_USER_FAIL": "you can only delete your account after 30 days",
   "USER_NOT_FOUND": "the user not found",
