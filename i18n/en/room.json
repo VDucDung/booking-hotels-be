@@ -1,0 +1,11 @@
+{
+  "CREATE_ROOM_SUCCESS": "create room successfully",
+  "UPDATE_ROOM_SUCCESS": "update room successfully",
+  "DELETE_ROOM_SUCCESS": "delete room successfully",
+  "DELETE_ROOM_FAIL": "delete room fail",
+  "ROOM_NOT_FOUND": "the room not found",
+  "ROOM_EXISTED": "the room already exists",
+  "ROOM_IDS_INVALID": "the room ids are invalid",
+  "GET_LIST_ROOM_SUCCESS": "get list room successfully",
+  "GET_ROOM_SUCCESS": "get room successfully"
+}

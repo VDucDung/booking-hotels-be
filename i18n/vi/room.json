@@ -1,0 +1,11 @@
+{
+  "CREATE_ROOM_SUCCESS": "tạo phòng thành công",
+  "UPDATE_ROOM_SUCCESS": "cập nhật phòng thành công",
+  "DELETE_ROOM_SUCCESS": "xóa phòng thành công",
+  "DELETE_ROOM_FAIL": "xóa phòng thất bại",
+  "ROOM_NOT_FOUND": "phòng không tồn tại",
+  "ROOM_EXISTED": "phòng này đã tồn tại",
+  "ROOM_IDS_INVALID": "các id của phòng không hợp lệ",
+  "GET_LIST_ROOM_SUCCESS": "lấy danh sách phòng thành công",
+  "GET_ROOM_SUCCESS": "lây phòng thành công"
+}
