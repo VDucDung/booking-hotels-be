@@ -12,7 +12,8 @@ export const HASH_KEY_AES = process.env.HASH_KEY_AES;
 export const nodeEnv = process.env.NODE_ENV;
 
 export const URL_HOST = {
-  production: process.env.HOST_PRODUCTION,
+  production_be: process.env.HOST_PRODUCTION_BE,
+  production_fe: process.env.HOST_PRODUCTION_FE,
   development: process.env.HOST_DEVELOPMENT,
 };
 

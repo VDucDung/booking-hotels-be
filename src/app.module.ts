@@ -40,6 +40,9 @@ import { ReviewModule } from './modules/review/review.module';
       database: process.env.DATABASE_NAME,
       entities: [__dirname + '/**/*.entity{.ts,.js}'],
       synchronize: process.env.NODE_ENV !== 'production',
+      ssl: {
+        rejectUnauthorized: false,
+      },
     }),
     I18nModule.forRoot({
       fallbackLanguage: 'en',
