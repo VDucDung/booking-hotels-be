@@ -5,27 +5,27 @@ import { Favorite } from './entities/favorite.entity';
 import { User } from 'src/modules/users/entities/user.entity';
 import { CreateFavoriteDto } from './dto/create-favorite.dto';
 import { UpdateFavoriteDto } from './dto/update-favorite.dto';
+import { ErrorHelper } from 'src/common/helpers';
+import { LocalesService } from '../locales/locales.service';
+import { AUTH_MESSAGE, FAVORITE_MESSAGE } from 'src/messages';
 
 @Injectable()
 export class FavoriteService {
   constructor(
     @InjectRepository(Favorite)
     private readonly favoriteRepository: Repository<Favorite>,
+    private readonly localesService: LocalesService,
   ) {}
 
-  async create(
-    user: User,
-    createFavoriteDto: CreateFavoriteDto,
-  ): Promise<Favorite> {
+  async create(createFavoriteDto: CreateFavoriteDto): Promise<Favorite> {
     const favorite = this.favoriteRepository.create({
       ...createFavoriteDto,
-      user,
     });
     return await this.favoriteRepository.save(favorite);
   }
 
-  async findAll(user: User): Promise<Favorite[]> {
-    return await this.favoriteRepository.find({ where: { user } });
+  async findAll(userId: number): Promise<Favorite[]> {
+    return await this.favoriteRepository.find({ where: { userId } });
   }
 
   async findOne(args: any): Promise<Favorite> {
@@ -40,10 +40,23 @@ export class FavoriteService {
     const favorite = await this.findOne({
       where: {
         id,
-        user,
       },
     });
+
+    if (!favorite) {
+      ErrorHelper.NotFoundException(
+        this.localesService.translate(FAVORITE_MESSAGE.FAVORITE_NOT_FOUND),
+      );
+    }
+
+    if (favorite.userId !== user.id) {
+      ErrorHelper.ForbiddenException(
+        this.localesService.translate(AUTH_MESSAGE.NO_PERMISSION),
+      );
+    }
+
     Object.assign(favorite, updateFavoriteDto);
+
     return this.favoriteRepository.save(favorite);
   }
 
@@ -51,9 +64,21 @@ export class FavoriteService {
     const favorite = await this.findOne({
       where: {
         id,
-        user,
       },
     });
+
+    if (!favorite) {
+      ErrorHelper.NotFoundException(
+        this.localesService.translate(FAVORITE_MESSAGE.FAVORITE_NOT_FOUND),
+      );
+    }
+
+    if (favorite.userId !== user.id) {
+      ErrorHelper.ForbiddenException(
+        this.localesService.translate(AUTH_MESSAGE.NO_PERMISSION),
+      );
+    }
+
     await this.favoriteRepository.remove(favorite);
   }
 }

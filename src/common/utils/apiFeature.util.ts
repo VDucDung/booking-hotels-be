@@ -29,7 +29,6 @@ class ApiFeature<T> {
       .createQueryBuilder(this.tableName)
       .skip(skip)
       .take(limit);
-    console.log(fieldsRegex, 'fieldsRegex');
     if (keyword) {
       qb.where(
         fieldsRegex.map((field) => `"${field}" ILIKE :keyword`).join(' OR '),

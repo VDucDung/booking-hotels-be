@@ -16,6 +16,9 @@ import { CreateFavoriteDto } from './dto/create-favorite.dto';
 import { UpdateFavoriteDto } from './dto/update-favorite.dto';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { AuthGuard } from 'src/common/guards/auth.guard';
+import { AuthDecorator } from 'src/common/decorators/auth.decorator';
+import { ERole, EUserPermission } from 'src/enums/roles.enum';
+import { PermissionDecorator } from 'src/common/decorators/permission.decorator';
 
 @Controller('favorites')
 @ApiBearerAuth()
@@ -24,19 +27,21 @@ export class FavoriteController {
   constructor(private readonly favoriteService: FavoriteService) {}
   @Post()
   @UseGuards(AuthGuard)
+  @AuthDecorator([ERole.PARTNER, ERole.ADMIN])
+  @PermissionDecorator(EUserPermission.CREATE_FAVORITE)
   async create(
     @Request() req: any,
     @Body() createFavoriteDto: CreateFavoriteDto,
   ) {
-    const user: User = req.user;
-    return await this.favoriteService.create(user, createFavoriteDto);
+    createFavoriteDto.userId = req.user.id;
+    return await this.favoriteService.create(createFavoriteDto);
   }
 
   @Get()
   @UseGuards(AuthGuard)
   async findAll(@Request() req: any) {
     const user: User = req.user;
-    return await this.favoriteService.findAll(user);
+    return await this.favoriteService.findAll(user.id);
   }
 
   @Get(':id')
@@ -48,6 +53,8 @@ export class FavoriteController {
 
   @Patch(':id')
   @UseGuards(AuthGuard)
+  @AuthDecorator([ERole.PARTNER, ERole.ADMIN])
+  @PermissionDecorator(EUserPermission.UPDATE_FAVORITE)
   async update(
     @Request() req: any,
     @Param('id') id: string,
@@ -59,6 +66,8 @@ export class FavoriteController {
 
   @Delete(':id')
   @UseGuards(AuthGuard)
+  @AuthDecorator([ERole.PARTNER, ERole.ADMIN])
+  @PermissionDecorator(EUserPermission.DELETE_FAVORITE)
   async remove(@Request() req: any, @Param('id') id: string) {
     const user: User = req.user;
     return await this.favoriteService.remove(id, user);

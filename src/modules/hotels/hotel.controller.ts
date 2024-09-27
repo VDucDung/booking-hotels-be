@@ -47,7 +47,7 @@ export class HotelController {
 
   @Put(':id')
   @UseGuards(AuthGuard)
-  @AuthDecorator([ERole.PARTNER])
+  @AuthDecorator([ERole.PARTNER, ERole.ADMIN])
   @PermissionDecorator(EUserPermission.UPDATE_HOTEL)
   update(
     @Param('id') id: number,
@@ -59,7 +59,7 @@ export class HotelController {
 
   @Delete(':id')
   @UseGuards(AuthGuard)
-  @AuthDecorator([ERole.PARTNER])
+  @AuthDecorator([ERole.PARTNER, ERole.ADMIN])
   @PermissionDecorator(EUserPermission.DELETE_HOTEL)
   remove(@Param('id') id: number, @Request() req) {
     return this.hotelService.remove(id, req.user);

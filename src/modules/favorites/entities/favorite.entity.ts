@@ -11,12 +11,12 @@ import {
 @Entity('favorite')
 export class Favorite {
   @PrimaryGeneratedColumn('increment')
-  id: string;
+  id: number;
 
   @ManyToOne(() => User, (user) => user.favorites)
   @JoinColumn({ name: 'user_id' })
-  user: User;
+  userId: number;
 
   @OneToMany(() => Hotel, (hotel) => hotel.favoriteId)
-  hotels: Hotel[];
+  hotels: number[];
 }

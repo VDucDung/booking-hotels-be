@@ -7,3 +7,4 @@ export * from './type-room.message';
 export * from './room.message';
 export * from './ticket.message';
 export * from './review.message';
+export * from './favorite.message';

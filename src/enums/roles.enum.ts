@@ -29,4 +29,10 @@ export const enum EUserPermission {
   GET_HOTEL = 'get_hotel',
   UPDATE_HOTEL = 'update_hotel',
   DELETE_HOTEL = 'delete_hotel',
+  // favorites
+  CREATE_FAVORITE = 'create_favorite',
+  GET_FAVORITES = 'get_favorites',
+  GET_FAVORITE = 'get_favorite',
+  UPDATE_FAVORITE = 'update_favorite',
+  DELETE_FAVORITE = 'delete_favorite',
 }
