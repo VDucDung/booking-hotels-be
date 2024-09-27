@@ -40,7 +40,7 @@ export class Hotel {
   @OneToMany(() => TypeRoom, (typeroom) => typeroom.hotelId)
   typeRooms: number[];
 
-  @ManyToOne(() => Favorite, { nullable: false })
+  @ManyToOne(() => Favorite, { nullable: true })
   @JoinColumn({ name: 'favorite_id' })
   favoriteId?: number;
 
