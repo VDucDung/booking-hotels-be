@@ -15,10 +15,11 @@ export class UpdateProfileDto {
     message: i18nValidationMessage(COMMON_MESSAGE.INVALID_PHONE),
   })
   @IsNotEmpty({ message: i18nValidationMessage(COMMON_MESSAGE.NOT_EMPTY) })
+  @IsOptional()
   @ApiProperty({
     name: 'phone',
     type: String,
-    required: true,
+    required: false,
   })
   phone: string;
 
@@ -30,7 +31,7 @@ export class UpdateProfileDto {
   @ApiProperty({
     name: 'password',
     type: String,
-    required: true,
+    required: false,
   })
   password: string;
 
@@ -38,10 +39,11 @@ export class UpdateProfileDto {
     message: i18nValidationMessage(COMMON_MESSAGE.MAX),
   })
   @IsNotEmpty({ message: i18nValidationMessage(COMMON_MESSAGE.NOT_EMPTY) })
+  @IsOptional()
   @ApiProperty({
     name: 'username',
     type: String,
-    required: true,
+    required: false,
   })
   username: string;
 
@@ -49,10 +51,11 @@ export class UpdateProfileDto {
     message: i18nValidationMessage(COMMON_MESSAGE.MAX),
   })
   @IsNotEmpty({ message: i18nValidationMessage(COMMON_MESSAGE.NOT_EMPTY) })
+  @IsOptional()
   @ApiProperty({
     name: 'fullname',
     type: String,
-    required: true,
+    required: false,
   })
   fullname: string;
 
@@ -62,16 +65,16 @@ export class UpdateProfileDto {
   @ApiProperty({
     name: 'avatar',
     type: String,
-    required: true,
+    required: false,
   })
-  avatar: number;
+  avatar: string;
 
   @IsNotEmpty({ message: i18nValidationMessage(COMMON_MESSAGE.NOT_EMPTY) })
   @IsOptional()
   @ApiProperty({
     name: 'dateOfBirth',
     type: Date,
-    required: true,
+    required: false,
   })
   dateOfBirth: Date;
 }

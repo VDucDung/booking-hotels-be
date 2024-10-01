@@ -21,6 +21,7 @@ import { ROLE_MESSAGE } from 'src/messages/role.message';
 import { CommonHelper } from 'src/helpers/common.helper';
 import { Role } from '../roles/entities/role.entity';
 import { console } from 'inspector';
+import { UploadService } from '../uploads/upload.service';
 
 @Injectable()
 export class UserService {
@@ -30,6 +31,7 @@ export class UserService {
     @InjectRepository(Role)
     private roleRepository: Repository<Role>,
     private localesService: LocalesService,
+    private readonly uploadService: UploadService,
   ) {}
 
   async getUserByEmail(email: string): Promise<User | undefined> {
@@ -121,8 +123,13 @@ export class UserService {
   async updateUserById(
     userId: number,
     updateUserDto: UpdateUserDto,
+    file: any,
   ): Promise<User> {
     const user = await this.getUserById(userId);
+    let url = user.avatar;
+    if (file) {
+      url = await this.uploadService.uploadImage(file);
+    }
 
     if (
       updateUserDto.email &&
@@ -139,6 +146,7 @@ export class UserService {
       }
     });
 
+    user.avatar = url;
     await this.userRepository.save(user);
 
     delete user.password;

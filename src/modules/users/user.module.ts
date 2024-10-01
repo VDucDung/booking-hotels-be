@@ -10,11 +10,13 @@ import { JwtModule } from '@nestjs/jwt';
 import { AuthModule } from '../auth/auth.module';
 import { JWT } from 'src/constants';
 import { Role } from '../roles/entities/role.entity';
+import { UploadModule } from '../uploads/upload.module';
 
 @Module({
   imports: [
     LocalesModule,
     EmailModule,
+    UploadModule,
     forwardRef(() => PermissionsModule),
     TypeOrmModule.forFeature([User]),
     TypeOrmModule.forFeature([Role]),

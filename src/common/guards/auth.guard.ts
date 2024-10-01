@@ -5,10 +5,9 @@ import {
   Inject,
   Injectable,
 } from '@nestjs/common';
-import { Reflector } from '@nestjs/core';
 import { JwtService } from '@nestjs/jwt';
 import { Request } from 'express';
-import { JWT, PERMISSIONS, ROLES } from 'src/constants';
+import { JWT } from 'src/constants';
 import { AUTH_MESSAGE, USER_MESSAGE } from 'src/messages';
 import { LocalesService } from 'src/modules/locales/locales.service';
 import { PermissionsService } from 'src/modules/permissions/permissions.service';
@@ -18,7 +17,6 @@ import { ErrorHelper } from '../helpers';
 @Injectable()
 export class AuthGuard implements CanActivate {
   constructor(
-    private readonly reflector: Reflector,
     private readonly jwtService: JwtService,
     @Inject(forwardRef(() => UserService))
     private readonly userService: UserService,
@@ -29,12 +27,6 @@ export class AuthGuard implements CanActivate {
   ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
-    const roles = this.reflector.get<string[]>(ROLES, context.getHandler());
-    const permission = this.reflector.get<string>(
-      PERMISSIONS,
-      context.getHandler(),
-    );
-
     const request = context.switchToHttp().getRequest<Request>();
     const token = this.extractTokenFromHeader(request);
 
@@ -54,6 +46,7 @@ export class AuthGuard implements CanActivate {
         this.localesService.translate(AUTH_MESSAGE.TOKEN_INVALID),
       );
     }
+
     let user;
     try {
       user = await this.userService.findOne({
@@ -69,23 +62,6 @@ export class AuthGuard implements CanActivate {
       ErrorHelper.UnauthorizedException(
         this.localesService.translate(USER_MESSAGE.USER_NOT_FOUND),
       );
-    }
-    if (roles && roles.length > 0 && !roles.includes(user.role.name)) {
-      ErrorHelper.UnauthorizedException(
-        this.localesService.translate(AUTH_MESSAGE.NO_PERMISSION),
-      );
-    }
-
-    if (permission) {
-      const checkPermission = await this.permissionsService.findOne({
-        where: { slug: permission },
-      });
-
-      if (checkPermission && !user.permissionIds.includes(checkPermission.id)) {
-        ErrorHelper.UnauthorizedException(
-          this.localesService.translate(AUTH_MESSAGE.NO_PERMISSION),
-        );
-      }
     }
 
     (request as any).user = user;
