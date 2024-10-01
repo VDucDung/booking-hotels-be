@@ -8,6 +8,7 @@ import { UploadService } from '../uploads/upload.service';
 import { AUTH_MESSAGE, ROOM_MESSAGE } from 'src/messages';
 import { LocalesService } from '../locales/locales.service';
 import { ErrorHelper } from 'src/common/helpers';
+import { User } from '../users/entities/user.entity';
 
 @Injectable()
 export class RoomService {
@@ -50,12 +51,12 @@ export class RoomService {
 
   async update(
     id: number,
-    userId: number,
+    user: User,
     updateRoomDto: UpdateRoomDto,
     file: any,
   ): Promise<Room> {
     const room = await this.findOne(id);
-    if (room.partnerId !== userId) {
+    if (room.partnerId !== user.id && user.role.name !== 'ADMIN') {
       ErrorHelper.ForbiddenException(
         this.localesService.translate(AUTH_MESSAGE.NO_PERMISSION),
       );
@@ -69,14 +70,14 @@ export class RoomService {
     return await this.roomRepository.save(room);
   }
 
-  async remove(id: number, userId: number): Promise<boolean> {
+  async remove(id: number, user: User): Promise<boolean> {
     const room = await this.findOne(id);
-    if (room.partnerId !== userId) {
+    if (room.partnerId !== user.id && user.role.name !== 'ADMIN') {
       ErrorHelper.ForbiddenException(
         this.localesService.translate(AUTH_MESSAGE.NO_PERMISSION),
       );
     }
-    room.deleted = true;
+    this.roomRepository.remove(room);
     await this.roomRepository.save(room);
     return true;
   }

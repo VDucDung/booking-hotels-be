@@ -1,4 +1,4 @@
-import { forwardRef, Module } from '@nestjs/common';
+import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { RoomService } from './room.service';
 import { RoomController } from './room.controller';
@@ -15,7 +15,7 @@ import { UserModule } from '../users/user.module';
     TypeOrmModule.forFeature([Room]),
     LocalesModule,
     UploadModule,
-    forwardRef(() => PermissionsModule),
+    PermissionsModule,
     LocalesModule,
     UserModule,
     JwtModule.register({

@@ -6,8 +6,9 @@ import { CreateTypeRoomDto } from './dto/create-type-room.dto';
 import { UpdateTypeRoomDto } from './dto/update-type-room.dto';
 import { ErrorHelper } from 'src/common/helpers';
 import { LocalesService } from '../locales/locales.service';
-import { TYPE_ROOM_MESSAGE } from 'src/messages';
+import { AUTH_MESSAGE, TYPE_ROOM_MESSAGE } from 'src/messages';
 import { HotelService } from '../hotels/hotel.service';
+import { User } from '../users/entities/user.entity';
 
 @Injectable()
 export class TypeRoomService {
@@ -18,8 +19,17 @@ export class TypeRoomService {
     private readonly localesService: LocalesService,
   ) {}
 
-  async create(createTypeRoomDto: CreateTypeRoomDto): Promise<TypeRoom> {
+  async create(
+    createTypeRoomDto: CreateTypeRoomDto,
+    user: User,
+  ): Promise<TypeRoom> {
     const hotel = await this.hotelService.findOne(createTypeRoomDto.hotelId);
+
+    if (hotel.partnerId !== user.id && user.role.name !== 'ADMIN') {
+      ErrorHelper.ForbiddenException(
+        this.localesService.translate(AUTH_MESSAGE.NO_PERMISSION),
+      );
+    }
 
     if (!hotel) {
       ErrorHelper.NotFoundException(
@@ -57,8 +67,15 @@ export class TypeRoomService {
   async update(
     id: string,
     updateTypeRoomDto: UpdateTypeRoomDto,
+    user: User,
   ): Promise<TypeRoom> {
     const typeRoom = await this.findOne(id);
+
+    if (typeRoom.partnerId !== user.id && user.role.name !== 'ADMIN') {
+      ErrorHelper.ForbiddenException(
+        this.localesService.translate(AUTH_MESSAGE.NO_PERMISSION),
+      );
+    }
 
     if (updateTypeRoomDto.hotelId) {
       const hotel = await this.hotelService.findOne(updateTypeRoomDto.hotelId);
@@ -77,8 +94,14 @@ export class TypeRoomService {
     return this.typeRoomRepository.save(typeRoom);
   }
 
-  async remove(id: string): Promise<void> {
+  async remove(id: string, user: User): Promise<void> {
     const typeRoom = await this.findOne(id);
+    if (typeRoom.partnerId !== user.id && user.role.name !== 'ADMIN') {
+      ErrorHelper.ForbiddenException(
+        this.localesService.translate(AUTH_MESSAGE.NO_PERMISSION),
+      );
+    }
     await this.typeRoomRepository.remove(typeRoom);
+    await this.typeRoomRepository.save(typeRoom);
   }
 }

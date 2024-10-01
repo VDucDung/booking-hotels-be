@@ -35,6 +35,12 @@ export const enum EUserPermission {
   GET_ROOM = 'get_room',
   UPDATE_ROOM = 'update_room',
   DELETE_ROOM = 'delete_room',
+  // type_rooms
+  CREATE_TYPE_ROOM = 'create_type_room',
+  GET_TYPE_ROOMS = 'get_type_rooms',
+  GET_TYPE_ROOM = 'get_type_room',
+  UPDATE_TYPE_ROOM = 'update_type_room',
+  DELETE_TYPE_ROOM = 'delete_type_room',
   // favorites
   CREATE_FAVORITE = 'create_favorite',
   GET_FAVORITES = 'get_favorites',

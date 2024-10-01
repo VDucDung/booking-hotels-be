@@ -67,11 +67,7 @@ export class RoomController {
   ): Promise<{ message: string; data: Room }> {
     return {
       message: this.localesService.translate(ROOM_MESSAGE.CREATE_ROOM_SUCCESS),
-      data: await this.roomService.create(
-        createRoomDto,
-        user.id as number,
-        file,
-      ),
+      data: await this.roomService.create(createRoomDto, user, file),
     };
   }
 
@@ -125,12 +121,7 @@ export class RoomController {
   ): Promise<{ message: string; data: Room }> {
     return {
       message: this.localesService.translate(ROOM_MESSAGE.UPDATE_ROOM_SUCCESS),
-      data: await this.roomService.update(
-        id,
-        user.id as number,
-        updateRoomDto,
-        file,
-      ),
+      data: await this.roomService.update(id, user, updateRoomDto, file),
     };
   }
 
@@ -142,7 +133,7 @@ export class RoomController {
     @Param('id') id: number,
     @UserDecorator() user: any,
   ): Promise<void> {
-    const result = await this.roomService.remove(id, user.id as number);
+    const result = await this.roomService.remove(id, user);
     if (!result) {
       ErrorHelper.BadRequestException(
         this.localesService.translate(ROOM_MESSAGE.DELETE_ROOM_FAIL),

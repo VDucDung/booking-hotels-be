@@ -3,18 +3,28 @@ import {
   Get,
   Post,
   Body,
-  Patch,
   Param,
   Delete,
   HttpStatus,
   HttpCode,
+  UseGuards,
+  Put,
 } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiResponse,
+  ApiBearerAuth,
+} from '@nestjs/swagger';
 import { TypeRoomService } from './typeRoom.service';
 import { CreateTypeRoomDto } from './dto/create-type-room.dto';
 import { UpdateTypeRoomDto } from './dto/update-type-room.dto';
 import { TYPE_ROOM_MESSAGE } from 'src/messages';
 import { LocalesService } from '../locales/locales.service';
+import { PermissionDecorator } from 'src/common/decorators/permission.decorator';
+import { EUserPermission } from 'src/enums/roles.enum';
+import { AuthGuard } from 'src/common/guards/auth.guard';
+import { UserDecorator } from 'src/common/decorators/user.decorator';
 
 @ApiTags('TypeRoom')
 @Controller('type-room')
@@ -26,14 +36,18 @@ export class TypeRoomController {
 
   @Post()
   @HttpCode(HttpStatus.CREATED)
-  @ApiOperation({ summary: 'Create a new type room' })
-  @ApiResponse({ status: HttpStatus.CREATED, description: 'Type room created' })
-  async create(@Body() createTypeRoomDto: CreateTypeRoomDto) {
+  @ApiBearerAuth()
+  @UseGuards(AuthGuard)
+  @PermissionDecorator(EUserPermission.CREATE_TYPE_ROOM)
+  async create(
+    @Body() createTypeRoomDto: CreateTypeRoomDto,
+    @UserDecorator() user: any,
+  ) {
     return {
       message: this.localesService.translate(
         TYPE_ROOM_MESSAGE.CREATE_TYPE_ROOM_SUCCESS,
       ),
-      data: await this.typeRoomService.create(createTypeRoomDto),
+      data: await this.typeRoomService.create(createTypeRoomDto, user),
     };
   }
 
@@ -59,28 +73,25 @@ export class TypeRoomController {
     return await this.typeRoomService.findOne(id);
   }
 
-  @Patch(':id')
+  @Put(':id')
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'Update type room by ID' })
-  @ApiResponse({
-    status: HttpStatus.OK,
-    description: 'Type room updated',
-  })
+  @ApiBearerAuth()
+  @UseGuards(AuthGuard)
+  @PermissionDecorator(EUserPermission.UPDATE_TYPE_ROOM)
   async update(
     @Param('id') id: string,
     @Body() updateTypeRoomDto: UpdateTypeRoomDto,
+    @UserDecorator() user: any,
   ) {
-    return await this.typeRoomService.update(id, updateTypeRoomDto);
+    return await this.typeRoomService.update(id, updateTypeRoomDto, user);
   }
 
   @Delete(':id')
   @HttpCode(HttpStatus.NO_CONTENT)
-  @ApiOperation({ summary: 'Delete type room by ID' })
-  @ApiResponse({
-    status: HttpStatus.NO_CONTENT,
-    description: 'Type room deleted',
-  })
-  async remove(@Param('id') id: string) {
-    return await this.typeRoomService.remove(id);
+  @ApiBearerAuth()
+  @UseGuards(AuthGuard)
+  @PermissionDecorator(EUserPermission.DELETE_TYPE_ROOM)
+  async remove(@Param('id') id: string, @UserDecorator() user: any) {
+    return await this.typeRoomService.remove(id, user);
   }
 }
