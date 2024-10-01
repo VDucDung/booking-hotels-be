@@ -1,9 +1,11 @@
 import { Ticket } from 'src/modules/tickets/entities/ticket.entity';
 import { TypeRoom } from 'src/modules/type_room/entities/type_room.entity';
+import { User } from 'src/modules/users/entities/user.entity';
 import {
   Column,
   CreateDateColumn,
   Entity,
+  JoinColumn,
   ManyToOne,
   OneToMany,
   PrimaryGeneratedColumn,
@@ -25,14 +27,6 @@ export class Room {
   images: string[];
 
   @Column({
-    type: 'enum',
-    enum: ['1', '2', '3', '4', '5'],
-    default: null,
-    nullable: true,
-  })
-  typeRoom: string;
-
-  @Column({
     type: 'text',
     array: true,
     nullable: true,
@@ -44,6 +38,10 @@ export class Room {
 
   @ManyToOne(() => TypeRoom, (typeRoom) => typeRoom.rooms)
   typeRoomId: TypeRoom;
+
+  @ManyToOne(() => User, { nullable: false })
+  @JoinColumn({ name: 'partner_id' })
+  partnerId: number;
 
   @OneToMany(() => Ticket, (ticket) => ticket.roomId)
   tickets: Ticket[];

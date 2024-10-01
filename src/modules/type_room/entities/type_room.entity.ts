@@ -1,5 +1,6 @@
 import { Hotel } from 'src/modules/hotels/entities/hotel.entity';
 import { Room } from 'src/modules/room/entities/room.entity';
+import { User } from 'src/modules/users/entities/user.entity';
 import {
   Entity,
   Column,
@@ -28,6 +29,10 @@ export class TypeRoom {
 
   @ManyToOne(() => Hotel, (hotel) => hotel.typeRooms)
   hotelId: Hotel;
+
+  @ManyToOne(() => User, { nullable: false })
+  @JoinColumn({ name: 'partner_id' })
+  partnerId: number;
 
   @CreateDateColumn({ name: 'created_at' })
   createdAt: Date;

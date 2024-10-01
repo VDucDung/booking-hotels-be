@@ -83,7 +83,7 @@ export class UserController {
     },
   })
   @ApiBearerAuth()
-  @HttpCode(200)
+  @HttpCode(HttpStatus.OK)
   @UseGuards(AuthGuard)
   @PermissionDecorator(EUserPermission.UPDATE_USER)
   @UseInterceptors(FileInterceptor('file', multerOptions.fileFilter))

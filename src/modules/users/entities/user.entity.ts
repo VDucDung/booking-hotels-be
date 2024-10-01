@@ -18,6 +18,8 @@ import { Role } from 'src/modules/roles/entities/role.entity';
 import { Review } from 'src/modules/review/entities/review.entity';
 import { Favorite } from 'src/modules/favorites/entities/favorite.entity';
 import { Hotel } from 'src/modules/hotels/entities/hotel.entity';
+import { Room } from 'src/modules/room/entities/room.entity';
+import { TypeRoom } from 'src/modules/type_room/entities/type_room.entity';
 
 @Entity()
 export class User {
@@ -81,6 +83,12 @@ export class User {
 
   @OneToMany(() => Hotel, (hotel) => hotel.partnerId)
   hotels: Hotel[];
+
+  @OneToMany(() => Room, (room) => room.partnerId)
+  rooms: Room[];
+
+  @OneToMany(() => TypeRoom, (type_room) => type_room.partnerId)
+  type_rooms: TypeRoom[];
 
   @CreateDateColumn({ name: 'created_at' })
   createdAt: Date;

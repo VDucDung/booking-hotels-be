@@ -29,6 +29,12 @@ export const enum EUserPermission {
   GET_HOTEL = 'get_hotel',
   UPDATE_HOTEL = 'update_hotel',
   DELETE_HOTEL = 'delete_hotel',
+  // rooms
+  CREATE_ROOM = 'create_room',
+  GET_ROOMS = 'get_rooms',
+  GET_ROOM = 'get_room',
+  UPDATE_ROOM = 'update_room',
+  DELETE_ROOM = 'delete_room',
   // favorites
   CREATE_FAVORITE = 'create_favorite',
   GET_FAVORITES = 'get_favorites',

@@ -1,11 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import {
-  IsNotEmpty,
-  IsOptional,
-  IsArray,
-  IsEnum,
-  IsNumber,
-} from 'class-validator';
+import { IsNotEmpty, IsOptional, IsArray, IsNumber } from 'class-validator';
 import { i18nValidationMessage } from 'nestjs-i18n';
 import { COMMON_MESSAGE } from 'src/messages';
 import { TypeRoom } from 'src/modules/type_room/entities/type_room.entity';
@@ -41,21 +35,6 @@ export class CreateRoomDto {
     example: ['image1.jpg', 'image2.jpg'],
   })
   images: string[];
-
-  @IsNotEmpty({
-    message: i18nValidationMessage(COMMON_MESSAGE.NOT_EMPTY),
-  })
-  @IsEnum(['1', '2', '3', '4', '5'], {
-    message: i18nValidationMessage(COMMON_MESSAGE.INVALID),
-  })
-  @ApiProperty({
-    name: 'typeRoom',
-    type: String,
-    enum: ['1', '2', '3', '4', '5'],
-    required: true,
-    example: '3',
-  })
-  typeRoom: string;
 
   @IsOptional()
   @IsArray({
@@ -96,4 +75,16 @@ export class CreateRoomDto {
     example: 1,
   })
   typeRoomId: TypeRoom;
+
+  @IsNotEmpty({
+    message: i18nValidationMessage(COMMON_MESSAGE.NOT_EMPTY),
+  })
+  @IsOptional()
+  @ApiProperty({
+    name: 'partnerId',
+    type: Number,
+    required: true,
+    example: 1,
+  })
+  partnerId: number;
 }
