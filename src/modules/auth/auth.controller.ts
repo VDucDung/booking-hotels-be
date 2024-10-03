@@ -6,6 +6,7 @@ import {
   Query,
   HttpStatus,
   Res,
+  HttpCode,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { LoginDto } from './dto/login.dto';
@@ -30,6 +31,7 @@ export class AuthController {
   ) {}
 
   @Post('login')
+  @HttpCode(HttpStatus.OK)
   async login(
     @Body() loginDto: LoginDto,
   ): Promise<{ statusCode: number; message: string; data: ILogin }> {
@@ -54,6 +56,7 @@ export class AuthController {
   }
 
   @Get('verify')
+  @HttpCode(HttpStatus.OK)
   async renderPageVerifyEmail(
     @Query('token') token: string,
     @Res() res: Response,
