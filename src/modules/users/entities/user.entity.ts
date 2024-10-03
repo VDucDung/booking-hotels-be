@@ -108,6 +108,8 @@ export class User {
       !this.password.startsWith('$2a$')
     ) {
       this.password = await bcrypt.hash(this.password, 8);
+    } else {
+      this.password = this.password;
     }
   }
 

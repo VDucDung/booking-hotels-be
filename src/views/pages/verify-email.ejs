@@ -169,7 +169,6 @@
             const response = await fetch(`/auth/verify?token=${token}`, {
                 method: 'POST'
             })
-            console.log(response)
             if (response.statusCode === 201 || response.status === 201) {
                 toastr.success('Confirm success, redirect to the homepage after 3 seconds');
                 setTimeout(() => {

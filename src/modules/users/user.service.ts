@@ -20,7 +20,6 @@ import {
 import { ROLE_MESSAGE } from 'src/messages/role.message';
 import { CommonHelper } from 'src/helpers/common.helper';
 import { Role } from '../roles/entities/role.entity';
-import { console } from 'inspector';
 import { UploadService } from '../uploads/upload.service';
 
 @Injectable()
@@ -55,7 +54,6 @@ export class UserService {
       );
     }
 
-    delete user.password;
     return user;
   }
 
@@ -192,6 +190,7 @@ export class UserService {
     changePasswordDto: ChangePasswordDto,
   ): Promise<boolean> {
     const { oldPassword, newPassword } = changePasswordDto;
+
     const user = await this.getUserById(userId);
     if (!(await user.isPasswordMatch(oldPassword))) {
       ErrorHelper.UnauthorizedException(
@@ -202,7 +201,6 @@ export class UserService {
     user.password = newPassword;
     await this.userRepository.save(user);
 
-    delete user.password;
     return true;
   }
 
@@ -276,7 +274,6 @@ export class UserService {
       let role = await this.roleRepository.findOne({
         where: { name: ERole.ADMIN },
       });
-      console.log(role);
 
       if (!role) {
         role = await this.roleRepository.save({ name: ERole.ADMIN });

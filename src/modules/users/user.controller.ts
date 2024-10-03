@@ -92,7 +92,6 @@ export class UserController {
     @Body() updateUserDto: UpdateProfileDto,
     @UploadedFile() file,
   ): Promise<{ statusCode: number; message: string; data: User }> {
-    console.log('user', user);
     const updatedUser = await this.userService.updateUserById(
       user.id,
       updateUserDto,
@@ -120,11 +119,11 @@ export class UserController {
   @UseGuards(AuthGuard)
   @Post('change-password')
   async changePassword(
-    @Request() req: any,
+    @UserDecorator() user: any,
     @Body() changePasswordDto: ChangePasswordDto,
   ): Promise<{ statusCode: number; message: string }> {
     const updatedUser = await this.userService.changePassword(
-      req.user.id,
+      user.id,
       changePasswordDto,
     );
     if (!updatedUser) {
