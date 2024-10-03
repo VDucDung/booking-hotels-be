@@ -56,6 +56,7 @@ export class UserController {
 
   @Get('me')
   @UseGuards(AuthGuard)
+  @HttpCode(HttpStatus.OK)
   @AuthDecorator([ERole.USER, ERole.ADMIN])
   async getMe(
     @UserDecorator('id') userId: number,
@@ -105,6 +106,7 @@ export class UserController {
   }
 
   @UseGuards(AuthGuard)
+  @HttpCode(HttpStatus.NO_CONTENT)
   @Delete('me')
   async deleteMyAccount(
     @Request() user: any,
@@ -117,6 +119,7 @@ export class UserController {
   }
 
   @UseGuards(AuthGuard)
+  @HttpCode(HttpStatus.OK)
   @Post('change-password')
   async changePassword(
     @UserDecorator() user: any,
@@ -140,6 +143,7 @@ export class UserController {
 
   @Post()
   @UseGuards(AuthGuard)
+  @HttpCode(HttpStatus.CREATED)
   @AuthDecorator([ERole.ADMIN])
   @PermissionDecorator(EUserPermission.CREATE_USER)
   async create(
@@ -155,6 +159,7 @@ export class UserController {
 
   @Get()
   @UseGuards(AuthGuard)
+  @HttpCode(HttpStatus.OK)
   @AuthDecorator([ERole.ADMIN])
   @PermissionDecorator(EUserPermission.GET_USERS)
   async getUsers(
@@ -165,6 +170,7 @@ export class UserController {
 
   @Get(':userId')
   @UseGuards(AuthGuard)
+  @HttpCode(HttpStatus.OK)
   @AuthDecorator([ERole.ADMIN])
   @PermissionDecorator(EUserPermission.GET_USER)
   async getUser(@Param('userId') userId: number): Promise<User> {
@@ -173,6 +179,7 @@ export class UserController {
 
   @Put(':userId')
   @UseGuards(AuthGuard)
+  @HttpCode(HttpStatus.OK)
   @AuthDecorator([ERole.ADMIN])
   @PermissionDecorator(EUserPermission.UPDATE_USER)
   @UseInterceptors(FileInterceptor('file', multerOptions.fileFilter))
@@ -192,6 +199,7 @@ export class UserController {
 
   @Delete(':userId')
   @UseGuards(AuthGuard)
+  @HttpCode(HttpStatus.OK)
   @AuthDecorator([ERole.ADMIN])
   @PermissionDecorator(EUserPermission.DELETE_USER)
   async deleteUser(@Param('userId') userId: number): Promise<{
@@ -206,6 +214,7 @@ export class UserController {
   }
 
   @UseGuards(AuthGuard)
+  @HttpCode(HttpStatus.OK)
   @Post(':userId/lock')
   async lockUser(
     @Param('userId') userId: number,
