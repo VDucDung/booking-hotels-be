@@ -1,0 +1,8 @@
+{
+  "CREATE_AUTH_PROVIDER_SUCCESS": "tạo liên kết thành công",
+  "UPDATE_AUTH_PROVIDER_SUCCESS": "cập nhật liên kết thành công",
+  "DELETE_AUTH_PROVIDER_SUCCESS": "xóa liên kết thành công",
+  "AUTH_PROVIDER_NOT_FOUND": "liên kết không tồn tại",
+  "AUTH_PROVIDER_EXISTED": "liên kết này đã tồn tại",
+  "AUTH_PROVIDER_IDS_INVALID": "các id của liên kết không hợp lệ"
+}

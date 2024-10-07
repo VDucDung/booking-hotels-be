@@ -24,6 +24,7 @@ import { TicketModule } from './modules/tickets/ticket.module';
 import { TypeRoomModule } from './modules/type_room/typeRoom.module';
 import { FavoriteModule } from './modules/favorites/favorite.module';
 import { ReviewModule } from './modules/review/review.module';
+import { AuthProviderModule } from './modules/auth_provider/authProvider.module';
 
 @Module({
   imports: [
@@ -70,6 +71,7 @@ import { ReviewModule } from './modules/review/review.module';
     TypeRoomModule,
     FavoriteModule,
     ReviewModule,
+    AuthProviderModule,
   ],
   controllers: [AppController],
   providers: [AppService],

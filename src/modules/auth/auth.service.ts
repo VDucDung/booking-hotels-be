@@ -24,6 +24,7 @@ import { User } from '../users/entities/user.entity';
 import { AUTH_MESSAGE, USER_MESSAGE } from 'src/messages';
 import { LocalesService } from '../locales/locales.service';
 import { ILogin } from 'src/interfaces';
+import { AuthProviderService } from '../auth_provider/authProvider.service';
 
 @Injectable()
 export class AuthService {
@@ -35,6 +36,7 @@ export class AuthService {
     private readonly cryptoService: CryptoService,
     private readonly emailService: EmailService,
     private localesService: LocalesService,
+    private authProviderService: AuthProviderService,
   ) {}
 
   async login(loginDto: LoginDto): Promise<ILogin> {
@@ -42,6 +44,15 @@ export class AuthService {
     const user = await this.userService.getUserByEmail(email);
 
     if (!user || !(await user.isPasswordMatch(password))) {
+      ErrorHelper.UnauthorizedException(
+        this.localesService.translate(AUTH_MESSAGE.LOGIN_FAIL),
+      );
+    }
+
+    const authProvider = user.authProviders.find(
+      (ap) => ap.provider === 'local',
+    );
+    if (!authProvider) {
       ErrorHelper.UnauthorizedException(
         this.localesService.translate(AUTH_MESSAGE.LOGIN_FAIL),
       );
@@ -71,6 +82,57 @@ export class AuthService {
     return { user, accessToken, refreshToken };
   }
 
+  async validateOAuthLogin(
+    email: string,
+    provider: string,
+    providerId: number,
+    name?: string,
+    avatar?: string,
+  ): Promise<any> {
+    const user = await this.userService.findOne({
+      where: { email },
+      relations: ['authProviders'],
+    });
+
+    if (user) {
+      const existingProvider = user.authProviders.find(
+        (ap) => ap.provider === provider && ap.providerId === providerId,
+      );
+
+      if (!existingProvider) {
+        await this.authProviderService.create({
+          provider,
+          providerId,
+          userId: user.id,
+        });
+      }
+    } else {
+      await this.userService.createUser({
+        email,
+        fullname: name,
+        avatar: avatar,
+        password: (providerId * new Date().getTime()).toString(),
+      });
+
+      await this.authProviderService.create({
+        provider,
+        providerId,
+        userId: user.id,
+      });
+    }
+
+    const payload = { sub: user.id, email: user.email };
+    user.lastActive = new Date();
+    await this.userRepository.save(user);
+
+    const accessToken = this.generateToken(TOKEN_TYPES.access, payload);
+    const refreshToken = this.generateToken(TOKEN_TYPES.refresh, payload);
+
+    user.password = undefined;
+
+    return { user, accessToken, refreshToken };
+  }
+
   async register(registerDto: RegisterDto): Promise<void> {
     const { fullname, email, password } = registerDto;
     const expires = new Date(Date.now() + EXPIRES_TOKEN_EMAIL_VERIFY);
@@ -82,7 +144,13 @@ export class AuthService {
       verifyExpireAt: expires,
     };
 
-    await this.userService.createUser(registerData);
+    const user = await this.userService.createUser(registerData);
+
+    await this.authProviderService.create({
+      provider: 'local',
+      providerId: user.id,
+      userId: user.id,
+    });
 
     const tokenVerify = this.cryptoService.encryptObj(
       { email, expires, type: EMAIL_TYPES.verify },

@@ -39,7 +39,7 @@ export class Room {
   @ManyToOne(() => TypeRoom, (typeRoom) => typeRoom.rooms)
   typeRoomId: TypeRoom;
 
-  @ManyToOne(() => User, { nullable: false })
+  @ManyToOne(() => User, { nullable: false, onDelete: 'CASCADE' })
   @JoinColumn({ name: 'partner_id' })
   partnerId: number;
 

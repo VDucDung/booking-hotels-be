@@ -21,6 +21,7 @@ import { ROLE_MESSAGE } from 'src/messages/role.message';
 import { CommonHelper } from 'src/helpers/common.helper';
 import { Role } from '../roles/entities/role.entity';
 import { UploadService } from '../uploads/upload.service';
+import { AuthProviderService } from '../auth_provider/authProvider.service';
 
 @Injectable()
 export class UserService {
@@ -31,6 +32,7 @@ export class UserService {
     private roleRepository: Repository<Role>,
     private localesService: LocalesService,
     private readonly uploadService: UploadService,
+    private readonly authProviderService: AuthProviderService,
   ) {}
 
   async getUserByEmail(email: string): Promise<User | undefined> {
@@ -290,6 +292,12 @@ export class UserService {
       });
 
       await this.userRepository.save(user);
+
+      await this.authProviderService.create({
+        provider: 'local',
+        providerId: user.id,
+        userId: user.id,
+      });
     }
   }
 

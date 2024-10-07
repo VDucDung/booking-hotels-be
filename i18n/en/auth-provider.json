@@ -1,0 +1,8 @@
+{
+  "CREATE_AUTH_PROVIDER_SUCCESS": "create auth provider successfully",
+  "UPDATE_AUTH_PROVIDER_SUCCESS": "update auth provider successfully",
+  "DELETE_AUTH_PROVIDER_SUCCESS": "delete auth provider successfully",
+  "AUTH_PROVIDER_NOT_FOUND": "the auth provider not found",
+  "AUTH_PROVIDER_EXISTED": "the auth provider already exists",
+  "AUTH_PROVIDER_IDS_INVALID": "the auth provider ids are invalid"
+}

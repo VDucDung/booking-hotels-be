@@ -11,6 +11,7 @@ import { AuthModule } from '../auth/auth.module';
 import { JWT } from 'src/constants';
 import { Role } from '../roles/entities/role.entity';
 import { UploadModule } from '../uploads/upload.module';
+import { AuthProviderModule } from '../auth_provider/authProvider.module';
 
 @Module({
   imports: [
@@ -25,6 +26,7 @@ import { UploadModule } from '../uploads/upload.module';
       signOptions: { expiresIn: JWT.expiresAccessToken },
     }),
     forwardRef(() => AuthModule),
+    forwardRef(() => AuthProviderModule),
   ],
   controllers: [UserController],
   providers: [UserService],

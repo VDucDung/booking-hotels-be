@@ -30,7 +30,7 @@ export class Hotel {
   @Column({ type: 'text', array: true })
   images: string[];
 
-  @ManyToOne(() => User, { nullable: false })
+  @ManyToOne(() => User, { nullable: false, onDelete: 'CASCADE' })
   @JoinColumn({ name: 'partner_id' })
   partnerId: number;
 

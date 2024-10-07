@@ -20,6 +20,7 @@ import { Favorite } from 'src/modules/favorites/entities/favorite.entity';
 import { Hotel } from 'src/modules/hotels/entities/hotel.entity';
 import { Room } from 'src/modules/room/entities/room.entity';
 import { TypeRoom } from 'src/modules/type_room/entities/type_room.entity';
+import { AuthProvider } from 'src/modules/auth_provider/entities/auth_provider.entity';
 
 @Entity()
 export class User {
@@ -89,6 +90,11 @@ export class User {
 
   @OneToMany(() => TypeRoom, (type_room) => type_room.partnerId)
   type_rooms: TypeRoom[];
+
+  @OneToMany(() => AuthProvider, (authProvider) => authProvider.user, {
+    cascade: true,
+  })
+  authProviders: AuthProvider[];
 
   @CreateDateColumn({ name: 'created_at' })
   createdAt: Date;

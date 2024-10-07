@@ -8,3 +8,4 @@ export * from './room.message';
 export * from './ticket.message';
 export * from './review.message';
 export * from './favorite.message';
+export * from './auth-provider.message';

@@ -19,6 +19,7 @@ import { SECRET, URL_HOST } from 'src/constants';
 import { CryptoService } from '../crypto/crypto.service';
 import { UserService } from '../users/user.service';
 import { Response } from 'express';
+import { LoginWithGoogleDto } from './dto/login-with-google.dto';
 
 @ApiTags('auth')
 @Controller('auth')
@@ -37,6 +38,26 @@ export class AuthController {
   ): Promise<{ statusCode: number; message: string; data: ILogin }> {
     const { user, accessToken, refreshToken } =
       await this.authService.login(loginDto);
+    return {
+      statusCode: HttpStatus.OK,
+      message: this.localesService.translate(AUTH_MESSAGE.LOGIN_SUCCESS),
+      data: { user, accessToken, refreshToken },
+    };
+  }
+
+  @Post('google/login')
+  @HttpCode(HttpStatus.OK)
+  async loginWithGoogle(
+    @Body() loginWithGoogleDto: LoginWithGoogleDto,
+  ): Promise<{ statusCode: number; message: string; data: ILogin }> {
+    const { user, accessToken, refreshToken } =
+      await this.authService.validateOAuthLogin(
+        loginWithGoogleDto.email,
+        loginWithGoogleDto.provider,
+        loginWithGoogleDto.providerId,
+        loginWithGoogleDto.name,
+        loginWithGoogleDto.avatar,
+      );
     return {
       statusCode: HttpStatus.OK,
       message: this.localesService.translate(AUTH_MESSAGE.LOGIN_SUCCESS),

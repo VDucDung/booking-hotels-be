@@ -47,4 +47,10 @@ export const enum EUserPermission {
   GET_FAVORITE = 'get_favorite',
   UPDATE_FAVORITE = 'update_favorite',
   DELETE_FAVORITE = 'delete_favorite',
+  // favorites
+  CREATE_AUTH_PROVIDER = 'create_auth_provider',
+  GET_AUTH_PROVIDERS = 'get_auth_providers',
+  GET_AUTH_PROVIDER = 'get_auth_provider',
+  UPDATE_AUTH_PROVIDER = 'update_auth_provider',
+  DELETE_AUTH_PROVIDER = 'delete_auth_provider',
 }
