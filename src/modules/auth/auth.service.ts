@@ -85,7 +85,7 @@ export class AuthService {
   async validateOAuthLogin(
     email: string,
     provider: string,
-    providerId: number,
+    providerId: string,
     name?: string,
     avatar?: string,
   ): Promise<any> {
@@ -148,7 +148,7 @@ export class AuthService {
 
     await this.authProviderService.create({
       provider: 'local',
-      providerId: user.id,
+      providerId: `${user.id}`,
       userId: user.id,
     });
 

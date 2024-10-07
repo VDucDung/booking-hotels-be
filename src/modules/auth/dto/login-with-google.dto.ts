@@ -7,7 +7,7 @@ export class LoginWithGoogleDto {
 
   @IsString()
   @IsNotEmpty()
-  providerId: number;
+  providerId: string;
 
   @IsEmail()
   email: string;

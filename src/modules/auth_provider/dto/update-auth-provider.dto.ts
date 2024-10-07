@@ -9,7 +9,7 @@ export class UpdateAuthProviderDto extends PartialType(CreateAuthProviderDto) {
 
   @IsOptional()
   @IsString()
-  providerId?: number;
+  providerId?: string;
 
   @IsOptional()
   @IsUUID()

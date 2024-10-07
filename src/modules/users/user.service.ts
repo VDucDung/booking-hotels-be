@@ -295,7 +295,7 @@ export class UserService {
 
       await this.authProviderService.create({
         provider: 'local',
-        providerId: user.id,
+        providerId: `${user.id}`,
         userId: user.id,
       });
     }

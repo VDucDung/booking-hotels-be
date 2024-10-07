@@ -7,7 +7,7 @@ export class CreateAuthProviderDto {
 
   @IsString()
   @IsNotEmpty()
-  providerId: number;
+  providerId: string;
 
   @IsUUID()
   @IsNotEmpty()

@@ -18,7 +18,7 @@ export class AuthProvider {
   provider: string;
 
   @Column()
-  providerId: number;
+  providerId: string;
 
   @ManyToOne(() => User, (user) => user.authProviders, { onDelete: 'CASCADE' })
   user: User;
