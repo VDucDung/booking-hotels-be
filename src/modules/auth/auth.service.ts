@@ -111,7 +111,7 @@ export class AuthService {
         email,
         fullname: name,
         avatar: avatar,
-        password: (providerId * new Date().getTime()).toString(),
+        password: Math.floor(Math.random() * 100000).toString(),
       });
 
       await this.authProviderService.create({

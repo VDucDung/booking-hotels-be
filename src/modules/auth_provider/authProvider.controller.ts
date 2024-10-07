@@ -1,4 +1,3 @@
-// src/auth-provider/auth-provider.controller.ts
 import {
   Controller,
   Get,
