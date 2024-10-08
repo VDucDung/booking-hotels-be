@@ -45,7 +45,10 @@ export class AuthService {
 
   async login(loginDto: LoginDto): Promise<ILogin> {
     const { email, password } = loginDto;
-    const user = await this.userService.getUserByEmail(email);
+    const user = await this.userService.findOne({
+      where: { email },
+      relations: ['authProviders'],
+    });
 
     if (!user || !(await user.isPasswordMatch(password))) {
       ErrorHelper.UnauthorizedException(
@@ -111,7 +114,7 @@ export class AuthService {
         });
       }
     } else {
-      await this.userService.createUser({
+      const newUser = await this.userService.createUser({
         email,
         fullname: name,
         avatar: avatar,
@@ -121,7 +124,7 @@ export class AuthService {
       await this.authProviderService.create({
         provider,
         providerId,
-        userId: user.id,
+        userId: newUser.id,
       });
     }
 
@@ -311,21 +314,29 @@ export class AuthService {
     } = this.cryptoService.expiresCheck(token, SECRET.tokenForgot);
 
     if (isExpired) {
-      ErrorHelper.BadRequestException(AUTH_MESSAGE.TOKEN_EXPIRED);
+      ErrorHelper.BadRequestException(
+        this.localesService.translate(AUTH_MESSAGE.TOKEN_EXPIRED),
+      );
     }
 
     if (payload.type !== TOKEN_TYPES.forgot) {
-      ErrorHelper.BadRequestException(AUTH_MESSAGE.TOKEN_INVALID);
+      ErrorHelper.BadRequestException(
+        this.localesService.translate(AUTH_MESSAGE.TOKEN_INVALID),
+      );
     }
 
     if (payload.otp !== otp) {
-      ErrorHelper.BadRequestException(AUTH_MESSAGE.VERIFY_OTP_INCORRECT);
+      ErrorHelper.BadRequestException(
+        this.localesService.translate(AUTH_MESSAGE.VERIFY_OTP_INCORRECT),
+      );
     }
 
     const user = await this.userService.getUserByEmail(payload.email);
 
     if (!user || user?.forgotStatus !== USER_FORGOT_STATUS_ENUM.VERIFY_OTP) {
-      ErrorHelper.BadRequestException(AUTH_MESSAGE.TOKEN_INVALID);
+      ErrorHelper.BadRequestException(
+        this.localesService.translate(AUTH_MESSAGE.TOKEN_INVALID),
+      );
     }
 
     const expires = Date.now() + EXPIRES_TOKEN_VERIFY_OTP_FORGOT;
@@ -343,5 +354,38 @@ export class AuthService {
     await this.userRepository.save(user);
 
     return tokenVerifyOTP;
+  }
+
+  async resetPassword(token: string, newPassword: string): Promise<void> {
+    const {
+      isExpired,
+      payload,
+    }: { isExpired: boolean; payload: { email: string; type: string } } =
+      this.cryptoService.expiresCheck(token, SECRET.tokenVerifyOTP);
+
+    if (isExpired) {
+      ErrorHelper.BadRequestException(
+        this.localesService.translate(AUTH_MESSAGE.TOKEN_EXPIRED),
+      );
+    }
+
+    if (payload.type !== TOKEN_TYPES.verify_otp) {
+      ErrorHelper.BadRequestException(
+        this.localesService.translate(AUTH_MESSAGE.TOKEN_INVALID),
+      );
+    }
+
+    const user = await this.userService.getUserByEmail(payload.email);
+
+    if (!user || user.forgotStatus !== USER_FORGOT_STATUS_ENUM.VERIFIED) {
+      ErrorHelper.BadRequestException(
+        this.localesService.translate(AUTH_MESSAGE.TOKEN_INVALID),
+      );
+    }
+
+    user.password = newPassword;
+    user.forgotStatus = USER_FORGOT_STATUS_ENUM.NULL;
+
+    await this.userRepository.save(user);
   }
 }

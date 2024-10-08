@@ -170,7 +170,7 @@
                 method: 'POST'
             });
             const data = await response.json();
-            if (data.code === 200) {
+            if (data.code === 200 || data.code === 201) {
                 toastr.success('Verification email resent successfully, please check your email');
                 setTimeout(() => {
                     window.location.href = '';

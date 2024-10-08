@@ -51,7 +51,8 @@ export class AuthProviderService {
       user,
     });
 
-    return this.authProviderRepository.save(authProvider);
+    await this.authProviderRepository.save(authProvider);
+    return authProvider;
   }
 
   async findAll(): Promise<AuthProvider[]> {

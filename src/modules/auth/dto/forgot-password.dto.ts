@@ -15,3 +15,13 @@ export class VerifyOTPForgotPasswordDto {
   @IsString()
   otp: string;
 }
+
+export class ResetPasswordDto {
+  @IsNotEmpty()
+  @IsString()
+  token: string;
+
+  @IsNotEmpty()
+  @IsString()
+  newPassword: string;
+}

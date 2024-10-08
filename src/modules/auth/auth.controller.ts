@@ -22,6 +22,7 @@ import { Response } from 'express';
 import { LoginWithGoogleDto } from './dto/login-with-google.dto';
 import {
   ForgotPasswordDto,
+  ResetPasswordDto,
   VerifyOTPForgotPasswordDto,
 } from './dto/forgot-password.dto';
 
@@ -163,8 +164,8 @@ export class AuthController {
   @HttpCode(HttpStatus.OK)
   async verifyOTPForgotPassword(
     @Body() verifyOTPForgotPasswordDto: VerifyOTPForgotPasswordDto,
-  ): Promise<{ statusCode: number; message: string }> {
-    await this.authService.verifyOTPForgotPassword(
+  ): Promise<{ statusCode: number; message: string; data: string }> {
+    const tokenVerifyOTP = await this.authService.verifyOTPForgotPassword(
       verifyOTPForgotPasswordDto.token,
       verifyOTPForgotPasswordDto.otp,
     );
@@ -172,6 +173,24 @@ export class AuthController {
     return {
       statusCode: HttpStatus.OK,
       message: this.localesService.translate(AUTH_MESSAGE.VERIFY_OTP_SUCCESS),
+      data: tokenVerifyOTP,
+    };
+  }
+
+  @Post('reset-password')
+  @HttpCode(HttpStatus.OK)
+  async resetPassword(
+    @Body() resetPasswordDto: ResetPasswordDto,
+  ): Promise<{ statusCode: number; message: string }> {
+    await this.authService.resetPassword(
+      resetPasswordDto.token,
+      resetPasswordDto.newPassword,
+    );
+    return {
+      statusCode: HttpStatus.OK,
+      message: this.localesService.translate(
+        AUTH_MESSAGE.RESET_PASSWORD_SUCCESS,
+      ),
     };
   }
 }
