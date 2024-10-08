@@ -1,6 +1,7 @@
 export const AUTH_MESSAGE = {
   REGISTER_SUCCESS: 'auth.REGISTER_SUCCESS' as never,
   LOGIN_SUCCESS: 'auth.LOGIN_SUCCESS' as never,
+  FORGOT_PASSWORD_SUCCESS: 'auth.FORGOT_PASSWORD_SUCCESS' as never,
   LOGIN_FAIL: 'auth.LOGIN_FAIL' as never,
   EMAIL_NOT_REGISTER: 'auth.EMAIL_NOT_REGISTER' as never,
   VERIFY: 'auth.VERIFY' as never,

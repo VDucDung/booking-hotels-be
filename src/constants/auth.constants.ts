@@ -58,3 +58,9 @@ export const TOKEN_TYPES = {
 export const EXPIRES_TOKEN_EMAIL_VERIFY = 1000 * 60 * 10;
 
 export const TIME_DIFF_EMAIL_VERIFY = 1000 * 60 * 3;
+
+export const EXPIRES_TOKEN_FOTGOT_PASSWORD = 1000 * 60 * 10;
+
+export const EXPIRES_TOKEN_VERIFY_OTP_FORGOT = 1000 * 60 * 10;
+
+export const LENGTH_OTP_DEFAULT = 6;

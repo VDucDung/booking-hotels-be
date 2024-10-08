@@ -20,6 +20,10 @@ import { CryptoService } from '../crypto/crypto.service';
 import { UserService } from '../users/user.service';
 import { Response } from 'express';
 import { LoginWithGoogleDto } from './dto/login-with-google.dto';
+import {
+  ForgotPasswordDto,
+  VerifyOTPForgotPasswordDto,
+} from './dto/forgot-password.dto';
 
 @ApiTags('auth')
 @Controller('auth')
@@ -112,6 +116,7 @@ export class AuthController {
   }
 
   @Post('verify')
+  @HttpCode(HttpStatus.OK)
   async verifyEmail(
     @Query('token') token: string,
   ): Promise<{ statusCode: number; message: string }> {
@@ -124,6 +129,7 @@ export class AuthController {
   }
 
   @Post('resend-email-verify')
+  @HttpCode(HttpStatus.OK)
   async reSendEmailVerify(
     @Query('token') token: string,
   ): Promise<{ statusCode: number; message: string }> {
@@ -132,6 +138,40 @@ export class AuthController {
     return {
       statusCode: HttpStatus.OK,
       message: this.localesService.translate(AUTH_MESSAGE.VERIFY_SUCCESS),
+    };
+  }
+
+  @Post('forgot-password')
+  @HttpCode(HttpStatus.OK)
+  async forgotPassword(
+    @Body() forgotPasswordDto: ForgotPasswordDto,
+  ): Promise<{ statusCode: number; message: string; data: string }> {
+    const tokenVerifyOTP = await this.authService.forgotPassword(
+      forgotPasswordDto.email,
+    );
+
+    return {
+      statusCode: HttpStatus.OK,
+      message: this.localesService.translate(
+        AUTH_MESSAGE.FORGOT_PASSWORD_SUCCESS,
+      ),
+      data: tokenVerifyOTP,
+    };
+  }
+
+  @Post('verify-otp-forgot-password')
+  @HttpCode(HttpStatus.OK)
+  async verifyOTPForgotPassword(
+    @Body() verifyOTPForgotPasswordDto: VerifyOTPForgotPasswordDto,
+  ): Promise<{ statusCode: number; message: string }> {
+    await this.authService.verifyOTPForgotPassword(
+      verifyOTPForgotPasswordDto.token,
+      verifyOTPForgotPasswordDto.otp,
+    );
+
+    return {
+      statusCode: HttpStatus.OK,
+      message: this.localesService.translate(AUTH_MESSAGE.VERIFY_OTP_SUCCESS),
     };
   }
 }

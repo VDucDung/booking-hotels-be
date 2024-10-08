@@ -6,6 +6,6 @@ export const EMAIL_SUBJECT = {
 
 export const EMAIL_TYPES = {
   verify: 'verify',
-  forgot: 'forgot',
+  forgot: 'forgot-password',
   account: 'account',
 };

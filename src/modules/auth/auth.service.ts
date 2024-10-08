@@ -6,6 +6,8 @@ import {
   EMAIL_SUBJECT,
   EMAIL_TYPES,
   EXPIRES_TOKEN_EMAIL_VERIFY,
+  EXPIRES_TOKEN_FOTGOT_PASSWORD,
+  EXPIRES_TOKEN_VERIFY_OTP_FORGOT,
   nodeEnv,
   SECRET,
   TIME_DIFF_EMAIL_VERIFY,
@@ -25,6 +27,8 @@ import { AUTH_MESSAGE, USER_MESSAGE } from 'src/messages';
 import { LocalesService } from '../locales/locales.service';
 import { ILogin } from 'src/interfaces';
 import { AuthProviderService } from '../auth_provider/authProvider.service';
+import { USER_FORGOT_STATUS_ENUM } from 'src/enums/user-forgot-status.enum';
+import { generateOTP } from 'src/common/utils/generateOTP.util';
 
 @Injectable()
 export class AuthService {
@@ -255,5 +259,89 @@ export class AuthService {
 
     user.verifyExpireAt = expires;
     await this.userRepository.save(user);
+  }
+
+  async forgotPassword(email: string): Promise<string> {
+    const user = await this.userService.getUserByEmail(email);
+    if (!user) {
+      ErrorHelper.BadRequestException(
+        this.localesService.translate(AUTH_MESSAGE.EMAIL_NOT_REGISTER),
+      );
+    }
+
+    if (!user.isVerify) {
+      ErrorHelper.BadRequestException(
+        this.localesService.translate(AUTH_MESSAGE.VERIFY),
+      );
+    }
+
+    const expires = Date.now() + EXPIRES_TOKEN_FOTGOT_PASSWORD;
+    const otp = generateOTP();
+
+    const tokenForgot = this.cryptoService.encryptObj(
+      {
+        otp,
+        email,
+        expires,
+        type: TOKEN_TYPES.forgot,
+      },
+      SECRET.tokenForgot,
+    );
+
+    await this.emailService.sendEmail({
+      emails: email,
+      subject: EMAIL_SUBJECT.forgot,
+      context: otp,
+      type: EMAIL_TYPES.forgot,
+    });
+
+    user.forgotStatus = USER_FORGOT_STATUS_ENUM.VERIFY_OTP;
+    await this.userRepository.save(user);
+
+    return tokenForgot;
+  }
+
+  async verifyOTPForgotPassword(token: string, otp: string): Promise<string> {
+    const {
+      isExpired,
+      payload,
+    }: {
+      isExpired: boolean;
+      payload: { email: string; otp: string; type: string };
+    } = this.cryptoService.expiresCheck(token, SECRET.tokenForgot);
+
+    if (isExpired) {
+      ErrorHelper.BadRequestException(AUTH_MESSAGE.TOKEN_EXPIRED);
+    }
+
+    if (payload.type !== TOKEN_TYPES.forgot) {
+      ErrorHelper.BadRequestException(AUTH_MESSAGE.TOKEN_INVALID);
+    }
+
+    if (payload.otp !== otp) {
+      ErrorHelper.BadRequestException(AUTH_MESSAGE.VERIFY_OTP_INCORRECT);
+    }
+
+    const user = await this.userService.getUserByEmail(payload.email);
+
+    if (!user || user?.forgotStatus !== USER_FORGOT_STATUS_ENUM.VERIFY_OTP) {
+      ErrorHelper.BadRequestException(AUTH_MESSAGE.TOKEN_INVALID);
+    }
+
+    const expires = Date.now() + EXPIRES_TOKEN_VERIFY_OTP_FORGOT;
+
+    const tokenVerifyOTP = this.cryptoService.encryptObj(
+      {
+        expires,
+        email: user.email,
+        type: TOKEN_TYPES.verify_otp,
+      },
+      SECRET.tokenVerifyOTP,
+    );
+
+    user.forgotStatus = USER_FORGOT_STATUS_ENUM.VERIFIED;
+    await this.userRepository.save(user);
+
+    return tokenVerifyOTP;
   }
 }
