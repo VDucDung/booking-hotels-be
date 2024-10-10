@@ -13,7 +13,7 @@ export class UploadService {
     const b64 = Buffer.from(file.buffer).toString('base64');
     const dataURI = 'data:' + file.mimetype + ';base64,' + b64;
     const result = await cloudinary.uploader.upload(dataURI, {
-      folder: 'images',
+      folder: 'booking-hotels',
       use_filename: true,
     });
     return result.secure_url;

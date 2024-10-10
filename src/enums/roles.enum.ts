@@ -53,4 +53,10 @@ export const enum EUserPermission {
   GET_AUTH_PROVIDER = 'get_auth_provider',
   UPDATE_AUTH_PROVIDER = 'update_auth_provider',
   DELETE_AUTH_PROVIDER = 'delete_auth_provider',
+  // categories
+  CREATE_CATEGORY = 'create_category',
+  GET_CATEGORYS = 'get_categorys',
+  GET_CATEGORY = 'get_category',
+  UPDATE_CATEGORY = 'update_category',
+  DELETE_CATEGORY = 'delete_category',
 }

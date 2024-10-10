@@ -1,0 +1,11 @@
+{
+  "CREATE_CATEGORY_SUCCESS": "tạo danh mục thành công",
+  "UPDATE_CATEGORY_SUCCESS": "cập nhật danh mục thành công",
+  "DELETE_CATEGORY_SUCCESS": "xóa danh mục thành công",
+  "DELETE_CATEGORY_FAIL": "xóa danh mục thất bại",
+  "GET_CATEGORY_SUCCESS": "lấy danh mục thành công",
+  "GET_CATEGORIES_SUCCESS": "lấy danh sách danh mục thành công",
+  "CATEGORY_NOT_FOUND": "danh mục không tồn tại",
+  "CATEGORY_EXISTED": "danh mục này đã tồn tại",
+  "CATEGORY_IDS_INVALID": "các id của danh mục không hợp lệ"
+}
