@@ -27,8 +27,9 @@ export class TypeRoom {
   @JoinColumn({ name: 'rooms' })
   rooms: Room[];
 
-  @ManyToOne(() => Hotel, (hotel) => hotel.typeRooms)
-  hotelId: Hotel;
+  @ManyToOne(() => Hotel, (hotel) => hotel.typeRooms, { nullable: true })
+  @JoinColumn({ name: 'hotelId' })
+  hotelId?: Hotel;
 
   @ManyToOne(() => User, { nullable: false })
   @JoinColumn({ name: 'partner_id' })

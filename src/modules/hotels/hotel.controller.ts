@@ -9,35 +9,85 @@ import {
   UseGuards,
   Request,
   Query,
+  UseInterceptors,
+  UploadedFiles,
 } from '@nestjs/common';
 import { HotelService } from './hotel.service';
 import { CreateHotelDto } from './dto/create-hotel.dto';
 import { UpdateHotelDto } from './dto/update-hotel.dto';
-import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiBody, ApiConsumes, ApiTags } from '@nestjs/swagger';
 import { AuthDecorator } from 'src/common/decorators/auth.decorator';
 import { PermissionDecorator } from 'src/common/decorators/permission.decorator';
 import { ERole, EUserPermission } from 'src/enums/roles.enum';
 import { AuthGuard } from 'src/common/guards/auth.guard';
 import { QueryParamsDto } from './dto/query-params.dto';
+import { FilesInterceptor } from '@nestjs/platform-express';
+import { multerOptions } from '../uploads/options/multer.option';
+import { UserDecorator } from 'src/common/decorators/user.decorator';
 
 @ApiTags('hotels')
-@ApiBearerAuth()
 @Controller('hotels')
 export class HotelController {
   constructor(private readonly hotelService: HotelService) {}
 
   @Post()
+  @ApiBearerAuth()
   @UseGuards(AuthGuard)
   @AuthDecorator([ERole.PARTNER, ERole.ADMIN])
   @PermissionDecorator(EUserPermission.CREATE_HOTEL)
-  create(@Request() req, @Body() createHotelDto: CreateHotelDto) {
-    createHotelDto.partnerId = req.user.id;
-    return this.hotelService.create(createHotelDto);
+  @ApiConsumes('multipart/form-data')
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        files: {
+          type: 'array',
+          items: {
+            type: 'string',
+            format: 'binary',
+          },
+        },
+        hotelName: {
+          type: 'string',
+        },
+        address: {
+          type: 'string',
+        },
+        description: {
+          type: 'string',
+        },
+        typeRooms: {
+          type: 'number',
+        },
+      },
+    },
+  })
+  @UseInterceptors(FilesInterceptor('files', 10, multerOptions.fileFilter))
+  create(
+    @UserDecorator() user: any,
+    @Body() createHotelDto: CreateHotelDto,
+    @UploadedFiles() files: Array<Express.Multer.File>,
+  ) {
+    createHotelDto.partnerId = user.id;
+    return this.hotelService.create(createHotelDto, files);
   }
 
   @Get()
   findAll(@Query() queryParams: QueryParamsDto) {
     return this.hotelService.findAll(queryParams);
+  }
+
+  @Get('search')
+  async searchHotels(@Query() queryParams: QueryParamsDto) {
+    const { limit, page, keyword, sortBy } = queryParams;
+    const sanitizedLimit = limit && !isNaN(limit) && limit > 0 ? limit : 10;
+    const sanitizedPage = page && !isNaN(page) && page > 0 ? page : 1;
+    return await this.hotelService.searchHotels(
+      sanitizedLimit,
+      sanitizedPage,
+      keyword,
+      sortBy,
+    );
   }
 
   @Get(':id')

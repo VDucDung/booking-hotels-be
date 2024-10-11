@@ -7,6 +7,9 @@ export class ValidationPipe extends I18nValidationPipe {
     super({
       whitelist: true,
       transform: true,
+      transformOptions: {
+        enableImplicitConversion: true,
+      },
       validationError: {
         target: true,
         value: true,

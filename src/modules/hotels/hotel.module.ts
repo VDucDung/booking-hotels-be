@@ -8,6 +8,7 @@ import { JwtModule } from '@nestjs/jwt';
 import { JWT } from 'src/constants';
 import { UserModule } from '../users/user.module';
 import { PermissionsModule } from '../permissions/permissions.module';
+import { UploadModule } from '../uploads/upload.module';
 
 @Module({
   imports: [
@@ -19,6 +20,7 @@ import { PermissionsModule } from '../permissions/permissions.module';
     }),
     UserModule,
     PermissionsModule,
+    UploadModule,
   ],
   controllers: [HotelController],
   providers: [HotelService],

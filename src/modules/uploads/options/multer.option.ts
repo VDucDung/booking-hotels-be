@@ -31,7 +31,7 @@ function hasSpecialCharacters(inputString) {
 export const multerOptions = {
   fileFilter: {
     limits: {
-      files: 1,
+      files: 10,
       fileSize: 50 * 1024 * 1024,
     },
     fileFilter: (req: Request, file, cb) => {

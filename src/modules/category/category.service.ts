@@ -8,8 +8,7 @@ import { ErrorHelper } from 'src/common/helpers';
 import { LocalesService } from '../locales/locales.service';
 import { CATEGORY_MESSAGE } from 'src/messages/category.message';
 import { UploadService } from '../uploads/upload.service';
-import { catetoryDefault } from 'src/constants/category.constants';
-
+import { imageDefault } from 'src/constants/image-default.constants';
 @Injectable()
 export class CategoryService {
   constructor(
@@ -31,7 +30,7 @@ export class CategoryService {
         this.localdesService.translate(CATEGORY_MESSAGE.CATEGORY_EXISTED),
       );
     }
-    let url = catetoryDefault;
+    let url = imageDefault;
     if (file) {
       url = await this.uploadService.uploadImage(file);
     }

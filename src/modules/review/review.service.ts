@@ -6,8 +6,8 @@ import { CreateReviewDto } from 'src/modules/review/dto/create-review.dto';
 import { UpdateReviewDto } from 'src/modules/review/dto/update-review.dto';
 import { ErrorHelper } from 'src/common/helpers';
 import { REVIEW_MESSAGE } from 'src/messages';
-import { catetoryDefault } from 'src/constants/category.constants';
 import { UploadService } from '../uploads/upload.service';
+import { imageDefault } from 'src/constants/image-default.constants';
 
 @Injectable()
 export class ReviewService {
@@ -30,7 +30,7 @@ export class ReviewService {
       );
       urls = await Promise.all(uploadPromises);
     } else {
-      urls = [catetoryDefault];
+      urls = [imageDefault];
     }
 
     createReviewDto.images = urls;
@@ -80,7 +80,7 @@ export class ReviewService {
       );
       urls = await Promise.all(uploadPromises);
     } else {
-      urls = [catetoryDefault];
+      urls = [imageDefault];
     }
 
     const updatedReview = { ...review, ...updateReviewDto };

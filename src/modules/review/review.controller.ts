@@ -64,9 +64,6 @@ export class ReviewController {
         rating: {
           type: 'number',
         },
-        userId: {
-          type: 'number',
-        },
       },
     },
   })

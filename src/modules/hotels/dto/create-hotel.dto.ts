@@ -44,6 +44,7 @@ export class CreateHotelDto {
   })
   images: string[];
 
+  @IsOptional()
   @IsNotEmpty({
     message: i18nValidationMessage(COMMON_MESSAGE.NOT_EMPTY),
   })
@@ -52,7 +53,7 @@ export class CreateHotelDto {
     type: Number,
     required: true,
   })
-  partnerId: number;
+  partnerId?: number;
 
   @IsOptional()
   @IsNotEmpty({

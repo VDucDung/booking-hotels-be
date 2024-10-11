@@ -76,7 +76,7 @@ export class User {
   @Column({ default: new Date() })
   lastActive: Date;
 
-  @OneToMany(() => Review, (review) => review.user)
+  @OneToMany(() => Review, (review) => review.userId)
   reviews: Review[];
 
   @OneToMany(() => Favorite, (favorite) => favorite.userId)
