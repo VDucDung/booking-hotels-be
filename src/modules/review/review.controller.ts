@@ -6,15 +6,30 @@ import {
   Param,
   Put,
   Delete,
-  ParseUUIDPipe,
+  UseGuards,
+  UseInterceptors,
+  UploadedFiles,
 } from '@nestjs/common';
-import { ApiTags, ApiResponse, ApiParam } from '@nestjs/swagger';
+import {
+  ApiTags,
+  ApiResponse,
+  ApiParam,
+  ApiBearerAuth,
+  ApiConsumes,
+  ApiBody,
+} from '@nestjs/swagger';
 import { Review } from './entities/review.entity';
 import { CreateReviewDto } from './dto/create-review.dto';
 import { ReviewService } from './review.service';
 import { UpdateReviewDto } from './dto/update-review.dto';
 import { LocalesService } from '../locales/locales.service';
 import { REVIEW_MESSAGE } from 'src/messages';
+import { AuthGuard } from 'src/common/guards/auth.guard';
+import { EUserPermission } from 'src/enums/roles.enum';
+import { PermissionDecorator } from 'src/common/decorators/permission.decorator';
+import { UserDecorator } from 'src/common/decorators/user.decorator';
+import { FilesInterceptor } from '@nestjs/platform-express';
+import { multerOptions } from '../uploads/options/multer.option';
 
 @ApiTags('reviews')
 @Controller('reviews')
@@ -25,20 +40,48 @@ export class ReviewController {
   ) {}
 
   @Post()
-  @ApiResponse({
-    status: 201,
-    description: 'Review created successfully.',
-    type: Review,
+  @UseGuards(AuthGuard)
+  @ApiBearerAuth()
+  @PermissionDecorator(EUserPermission.CREATE_REVIEW)
+  @ApiConsumes('multipart/form-data')
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        files: {
+          type: 'array',
+          items: {
+            type: 'string',
+            format: 'binary',
+          },
+        },
+        comment: {
+          type: 'string',
+        },
+        hotelId: {
+          type: 'number',
+        },
+        rating: {
+          type: 'number',
+        },
+        userId: {
+          type: 'number',
+        },
+      },
+    },
   })
-  @ApiResponse({ status: 400, description: 'Invalid input.' })
+  @UseInterceptors(FilesInterceptor('files', 10, multerOptions.fileFilter))
   async create(
+    @UserDecorator() user: any,
     @Body() createReviewDto: CreateReviewDto,
-  ): Promise<{ message: string; data: Review }> {
+    @UploadedFiles() files: Array<Express.Multer.File>,
+  ) {
+    createReviewDto.userId = user.id;
     return {
       message: this.localesService.translate(
         REVIEW_MESSAGE.CREATE_REVIEW_SUCCESS,
       ),
-      data: await this.reviewService.create(createReviewDto),
+      data: await this.reviewService.create(createReviewDto, files),
     };
   }
 
@@ -63,7 +106,7 @@ export class ReviewController {
   @ApiResponse({ status: 200, description: 'Review details.', type: Review })
   @ApiResponse({ status: 404, description: 'Review not found.' })
   async findOne(
-    @Param('id', ParseUUIDPipe) id: string,
+    @Param('id') id: number,
   ): Promise<{ message: string; data: Review }> {
     return {
       message: this.localesService.translate(REVIEW_MESSAGE.GET_REVIEW_SUCCESS),
@@ -72,27 +115,44 @@ export class ReviewController {
   }
 
   @Put(':id')
-  @ApiParam({
-    name: 'id',
-    description: 'ID of the review to update',
-    type: String,
+  @UseGuards(AuthGuard)
+  @ApiBearerAuth()
+  @PermissionDecorator(EUserPermission.CREATE_REVIEW)
+  @ApiConsumes('multipart/form-data')
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        files: {
+          type: 'array',
+          items: {
+            type: 'string',
+            format: 'binary',
+          },
+        },
+        comment: {
+          type: 'string',
+        },
+        hotelId: {
+          type: 'number',
+        },
+        rating: {
+          type: 'number',
+        },
+      },
+    },
   })
-  @ApiResponse({
-    status: 200,
-    description: 'Review updated successfully.',
-    type: Review,
-  })
-  @ApiResponse({ status: 404, description: 'Review not found.' })
-  @ApiResponse({ status: 400, description: 'Invalid input.' })
+  @UseInterceptors(FilesInterceptor('files', 10, multerOptions.fileFilter))
   async update(
-    @Param('id', ParseUUIDPipe) id: string,
+    @Param('id') id: number,
     @Body() updateReviewDto: UpdateReviewDto,
+    @UploadedFiles() files: Array<Express.Multer.File>,
   ): Promise<{ message: string; data: Review }> {
     return {
       message: this.localesService.translate(
         REVIEW_MESSAGE.UPDATE_REVIEW_SUCCESS,
       ),
-      data: await this.reviewService.update(id, updateReviewDto),
+      data: await this.reviewService.update(id, updateReviewDto, files),
     };
   }
 
@@ -104,9 +164,7 @@ export class ReviewController {
   })
   @ApiResponse({ status: 200, description: 'Review deleted successfully.' })
   @ApiResponse({ status: 404, description: 'Review not found.' })
-  async remove(
-    @Param('id', ParseUUIDPipe) id: string,
-  ): Promise<{ message: string }> {
+  async remove(@Param('id') id: number): Promise<{ message: string }> {
     await this.reviewService.remove(id);
 
     return {

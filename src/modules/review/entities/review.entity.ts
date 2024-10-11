@@ -8,20 +8,22 @@ import {
   JoinColumn,
   CreateDateColumn,
   UpdateDateColumn,
+  Check,
 } from 'typeorm';
 
 @Entity('review')
+@Check(`"rating" >= 1 AND "rating" <= 5`)
 export class Review {
   @PrimaryGeneratedColumn('increment')
-  id: string;
+  id: number;
 
   @ManyToOne(() => User, (user) => user.reviews)
   @JoinColumn({ name: 'user_id' })
-  user: User;
+  userId: number;
 
   @ManyToOne(() => Hotel, (hotel) => hotel.reviews)
   @JoinColumn({ name: 'hotel_id' })
-  hotelId: string;
+  hotelId: number;
 
   @Column({ type: 'varchar', length: 255 })
   comment: string;
@@ -30,12 +32,10 @@ export class Review {
   images: string[];
 
   @Column({
-    type: 'enum',
-    enum: ['1', '2', '3', '4', '5'],
-    default: null,
+    type: 'int',
     nullable: true,
   })
-  reating: string;
+  rating: number;
 
   @CreateDateColumn({ name: 'created_at' })
   createdAt: Date;

@@ -3,8 +3,11 @@ import {
   IsString,
   IsNotEmpty,
   IsOptional,
-  IsEnum,
   IsArray,
+  IsNumber,
+  IsInt,
+  Min,
+  Max,
 } from 'class-validator';
 import { i18nValidationMessage } from 'nestjs-i18n';
 import { COMMON_MESSAGE } from 'src/messages';
@@ -30,36 +33,23 @@ export class CreateReviewDto {
   @IsArray({ message: i18nValidationMessage(COMMON_MESSAGE.INVALID) })
   images?: string[];
 
-  @ApiProperty({
-    name: 'rating',
-    type: String,
-    description: 'Rating given in the review',
-    enum: ['1', '2', '3', '4', '5'],
-    required: true,
-  })
-  @IsEnum(['1', '2', '3', '4', '5'], {
-    message: i18nValidationMessage(COMMON_MESSAGE.INVALID),
-  })
-  @IsNotEmpty({ message: i18nValidationMessage(COMMON_MESSAGE.NOT_EMPTY) })
-  rating: string;
+  @IsInt({ message: 'Rating must be an integer.' })
+  @Min(1, { message: 'Rating must be at least 1.' })
+  @Max(5, { message: 'Rating must not exceed 5.' })
+  rating: number;
 
-  @ApiProperty({
-    name: 'userId',
-    type: String,
-    description: 'ID of the user who wrote the review',
-    required: true,
-  })
-  @IsString({ message: i18nValidationMessage(COMMON_MESSAGE.INVALID) })
+  @IsOptional()
+  @IsNumber()
   @IsNotEmpty({ message: i18nValidationMessage(COMMON_MESSAGE.NOT_EMPTY) })
-  userId: string;
+  userId?: number;
 
   @ApiProperty({
     name: 'hotelId',
-    type: String,
+    type: Number,
     description: 'ID of the hotel being reviewed',
     required: true,
   })
-  @IsString({ message: i18nValidationMessage(COMMON_MESSAGE.INVALID) })
+  @IsNumber()
   @IsNotEmpty({ message: i18nValidationMessage(COMMON_MESSAGE.NOT_EMPTY) })
-  hotelId: string;
+  hotelId: number;
 }
