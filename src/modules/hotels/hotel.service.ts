@@ -241,7 +241,7 @@ export class HotelService {
 
     return {
       data: hotelsWithRatings,
-      meta: {
+      detailResult: {
         total,
         page,
         limit,

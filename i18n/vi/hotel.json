@@ -1,5 +1,6 @@
 {
   "CREATE_HOTEL_SUCCESS": "tạo khách sạn thành công",
+  "GET_HOTELS_SUCCESS": "Lấy danh sách khác sạn thành công",
   "UPDATE_HOTEL_SUCCESS": "cập nhật khách sạn thành công",
   "DELETE_HOTEL_SUCCESS": "xóa khách sạn thành công",
   "HOTEL_NOT_FOUND": "khách sạn không tồn tại",

@@ -24,11 +24,17 @@ import { QueryParamsDto } from './dto/query-params.dto';
 import { FilesInterceptor } from '@nestjs/platform-express';
 import { multerOptions } from '../uploads/options/multer.option';
 import { UserDecorator } from 'src/common/decorators/user.decorator';
+import { Hotel } from './entities/hotel.entity';
+import { LocalesService } from '../locales/locales.service';
+import { HOTEL_MESSAGE } from 'src/messages';
 
 @ApiTags('hotels')
 @Controller('hotels')
 export class HotelController {
-  constructor(private readonly hotelService: HotelService) {}
+  constructor(
+    private readonly hotelService: HotelService,
+    private readonly localesService: LocalesService,
+  ) {}
 
   @Post()
   @ApiBearerAuth()
@@ -78,16 +84,23 @@ export class HotelController {
   }
 
   @Get('search')
-  async searchHotels(@Query() queryParams: QueryParamsDto) {
+  async searchHotels(@Query() queryParams: QueryParamsDto): Promise<{
+    message: string;
+    data: { hotels: Hotel[]; detailResult: any };
+  }> {
     const { limit, page, keyword, sortBy } = queryParams;
     const sanitizedLimit = limit && !isNaN(limit) && limit > 0 ? limit : 10;
     const sanitizedPage = page && !isNaN(page) && page > 0 ? page : 1;
-    return await this.hotelService.searchHotels(
+    const { data, detailResult } = await this.hotelService.searchHotels(
       sanitizedLimit,
       sanitizedPage,
       keyword,
       sortBy,
     );
+    return {
+      message: this.localesService.translate(HOTEL_MESSAGE.GET_HOTELS_SUCCESS),
+      data: { hotels: data, detailResult },
+    };
   }
 
   @Get(':id')
