@@ -1,17 +1,27 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Connection, In, Repository } from 'typeorm';
 import { CreateHotelDto } from './dto/create-hotel.dto';
 import { UpdateHotelDto } from './dto/update-hotel.dto';
 import { Hotel } from './entities/hotel.entity';
 import { ErrorHelper } from 'src/common/helpers';
 import { LocalesService } from '../locales/locales.service';
-import { AUTH_MESSAGE, HOTEL_MESSAGE } from 'src/messages';
+import {
+  AUTH_MESSAGE,
+  FAVORITE_MESSAGE,
+  HOTEL_MESSAGE,
+  TYPE_ROOM_MESSAGE,
+  USER_MESSAGE,
+} from 'src/messages';
 import ApiFeature from 'src/common/utils/apiFeature.util';
 import { QueryParams } from 'src/interfaces';
 import { User } from '../users/entities/user.entity';
 import { UploadService } from '../uploads/upload.service';
 import { imageDefault } from 'src/constants/image-default.constants';
+import { UserService } from '../users/user.service';
+import { Favorite } from '../favorites/entities/favorite.entity';
+import { FavoriteService } from '../favorites/favorite.service';
+import { TypeRoomService } from '../type_room/typeRoom.service';
 
 @Injectable()
 export class HotelService {
@@ -20,26 +30,75 @@ export class HotelService {
     private hotelRepository: Repository<Hotel>,
     private readonly localesService: LocalesService,
     private readonly uploadService: UploadService,
+    private readonly userService: UserService,
+    private readonly favoriteService: FavoriteService,
+    private readonly typeRoomService: TypeRoomService,
+    private connection: Connection,
   ) {}
   async create(
     createHotelDto: CreateHotelDto,
     files: Array<Express.Multer.File>,
   ): Promise<Hotel> {
-    let urls: string[] = [];
+    const queryRunner = this.connection.createQueryRunner();
 
-    if (files && files.length > 0) {
-      const uploadPromises = files.map((file) =>
-        this.uploadService.uploadImage(file),
-      );
-      urls = await Promise.all(uploadPromises);
-    } else {
-      urls = [imageDefault];
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
+
+    try {
+      const { partnerId, favoriteId, typeRoomIds } = createHotelDto;
+
+      const partner = await this.userService.getUserById(partnerId);
+      if (!partner) {
+        ErrorHelper.NotFoundException(USER_MESSAGE.USER_NOT_FOUND);
+      }
+
+      let favorite: Favorite = null;
+      if (favoriteId) {
+        favorite = await this.favoriteService.findOne({
+          where: { id: favoriteId },
+        });
+        if (!favorite) {
+          ErrorHelper.NotFoundException(FAVORITE_MESSAGE.FAVORITE_NOT_FOUND);
+        }
+      }
+
+      const typeRooms = await this.typeRoomService.find({
+        where: { id: In(typeRoomIds) },
+      });
+      if (typeRooms.length !== typeRoomIds.length) {
+        ErrorHelper.NotFoundException(TYPE_ROOM_MESSAGE.TYPE_ROOM_NOT_FOUND);
+      }
+
+      let urls: string[] = [];
+
+      if (files && files.length > 0) {
+        const uploadPromises = files.map((file) =>
+          this.uploadService.uploadImage(file),
+        );
+        urls = await Promise.all(uploadPromises);
+      } else {
+        const image = imageDefault;
+        urls = [image];
+      }
+
+      const hotel = this.hotelRepository.create({
+        ...createHotelDto,
+        images: urls,
+        partner,
+        favorite,
+        typeRooms,
+      });
+
+      const savedHotel = await queryRunner.manager.save(hotel);
+
+      await queryRunner.commitTransaction();
+      return savedHotel;
+    } catch (error) {
+      await queryRunner.rollbackTransaction();
+      throw error;
+    } finally {
+      await queryRunner.release();
     }
-
-    createHotelDto.images = urls;
-    const hotel = this.hotelRepository.create(createHotelDto);
-    await this.hotelRepository.save(hotel);
-    return hotel;
   }
 
   async findAll(queryParams: QueryParams): Promise<any> {
@@ -73,38 +132,28 @@ export class HotelService {
     user: User,
   ): Promise<Hotel> {
     const hotel = await this.findOne(id);
-    if (!hotel) {
-      ErrorHelper.NotFoundException(
-        this.localesService.translate(HOTEL_MESSAGE.HOTEL_NOT_FOUND),
-      );
-    }
 
-    if (hotel.partnerId !== user.id && user.role.name !== 'ADMIN') {
+    if (hotel.partner.id !== user.id && user.role.name !== 'ADMIN') {
       ErrorHelper.ForbiddenException(
         this.localesService.translate(AUTH_MESSAGE.NO_PERMISSION),
       );
     }
 
-    await this.hotelRepository.update(id, updateHotelDto);
+    Object.assign(hotel, updateHotelDto);
+
     return this.hotelRepository.save(hotel);
   }
 
   async remove(id: number, user: User): Promise<void> {
     const hotel = await this.findOne(id);
-    if (!hotel) {
-      ErrorHelper.NotFoundException(
-        this.localesService.translate(HOTEL_MESSAGE.HOTEL_NOT_FOUND),
-      );
-    }
 
-    if (hotel.partnerId !== user.id && user.role.name !== 'ADMIN') {
+    if (hotel.partner.id !== user.id && user.role.name !== 'ADMIN') {
       ErrorHelper.ForbiddenException(
         this.localesService.translate(AUTH_MESSAGE.NO_PERMISSION),
       );
     }
 
-    hotel.deleted = true;
-    await this.hotelRepository.save(hotel);
+    await this.hotelRepository.remove(hotel);
   }
 
   async searchHotels(
@@ -115,14 +164,29 @@ export class HotelService {
   ) {
     const query = this.hotelRepository
       .createQueryBuilder('hotel')
-      .leftJoinAndSelect('hotel.reviews', 'reviews')
+      .leftJoin('hotel.reviews', 'reviews')
+      .leftJoinAndSelect('hotel.favorite', 'favorite')
       .leftJoinAndSelect('hotel.typeRooms', 'typeRooms')
-      .leftJoinAndSelect('hotel.favoriteId', 'favorite')
-      .select(['hotel'])
-      .addSelect('COALESCE(AVG(reviews.rating), 0)', 'avg_rating')
+      .select([
+        'hotel.id',
+        'hotel.hotelName',
+        'hotel.address',
+        'hotel.description',
+        'hotel.images',
+        'hotel.createdAt',
+        'hotel.updatedAt',
+        'hotel.deleted',
+        'hotel.partner',
+        'favorite.id',
+      ])
+      .addSelect(
+        'ROUND(COALESCE(AVG(reviews.rating), 0), 1)',
+        'hotel_avg_rating',
+      )
+      .addSelect('COUNT(DISTINCT reviews.id)', 'hotel_total_reviews')
       .groupBy('hotel.id')
-      .addGroupBy('typeRooms.id')
-      .addGroupBy('favorite.id');
+      .addGroupBy('favorite.id')
+      .addGroupBy('typeRooms.id');
 
     if (keyword) {
       query.andWhere(
@@ -135,7 +199,10 @@ export class HotelService {
       const [field, order] = sortBy.split(':');
       if (this.isValidSortField(field) && this.isValidSortOrder(order)) {
         if (field === 'rating') {
-          query.orderBy('avg_rating', order.toUpperCase() as 'ASC' | 'DESC');
+          query.orderBy(
+            'hotel_avg_rating',
+            order.toUpperCase() as 'ASC' | 'DESC',
+          );
         } else {
           query.orderBy(
             `hotel.${field}`,
@@ -149,28 +216,31 @@ export class HotelService {
       query.orderBy('hotel.createdAt', 'DESC');
     }
 
-    const rawHotels = await query
+    const result = await query
       .skip((page - 1) * limit)
       .take(limit)
-      .getRawMany();
-    const total = await query.getCount();
+      .getRawAndEntities();
 
-    const hotelsWithAvgRating = rawHotels.map((rawHotel) => ({
-      id: rawHotel.hotel_id,
-      hotelName: rawHotel.hotel_hotelName,
-      address: rawHotel.hotel_address,
-      description: rawHotel.hotel_description,
-      images: rawHotel.hotel_images,
-      createdAt: rawHotel.hotel_created_at,
-      updatedAt: rawHotel.hotel_updated_at,
-      deleted: rawHotel.hotel_deleted,
-      partnerId: rawHotel.hotel_partner_id,
-      favoriteId: rawHotel.hotel_favorite_id,
-      avgRating: parseFloat(rawHotel.avg_rating) || 0,
-    }));
+    const hotels = result.raw;
+    const total = result.entities.length;
+
+    const hotelsWithRatings = hotels.map((hotel: any) => {
+      return {
+        ...hotel,
+        hotel_avg_rating:
+          hotel['hotel_avg_rating'] !== null
+            ? parseFloat(hotel['hotel_avg_rating'])
+            : 0,
+        hotel_total_reviews:
+          hotel['hotel_total_reviews'] !== null
+            ? parseInt(hotel['hotel_total_reviews'])
+            : 0,
+        typeRooms: hotel.typeRooms || [],
+      };
+    });
 
     return {
-      data: hotelsWithAvgRating,
+      data: hotelsWithRatings,
       meta: {
         total,
         page,

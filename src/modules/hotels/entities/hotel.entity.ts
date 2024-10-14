@@ -32,17 +32,17 @@ export class Hotel {
 
   @ManyToOne(() => User, { nullable: false, onDelete: 'CASCADE' })
   @JoinColumn({ name: 'partner_id' })
-  partnerId: number;
+  partner: User;
 
   @OneToMany(() => Review, (review) => review.hotelId)
   reviews?: Review[];
 
-  @OneToMany(() => TypeRoom, (typeroom) => typeroom.hotelId)
-  typeRooms: number[];
+  @OneToMany(() => TypeRoom, (typeroom) => typeroom.hotel, { nullable: true })
+  typeRooms: TypeRoom[];
 
   @ManyToOne(() => Favorite, { nullable: true })
   @JoinColumn({ name: 'favorite_id' })
-  favoriteId?: number;
+  favorite?: Favorite;
 
   @CreateDateColumn({ name: 'created_at' })
   createdAt: Date;

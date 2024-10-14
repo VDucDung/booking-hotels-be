@@ -81,9 +81,9 @@ export class CreateHotelDto {
     message: i18nValidationMessage(COMMON_MESSAGE.NOT_EMPTY),
   })
   @ApiProperty({
-    name: 'typeRooms',
+    name: 'typeRoomIds',
     type: [Number],
     required: true,
   })
-  typeRooms: number[];
+  typeRoomIds: number[];
 }

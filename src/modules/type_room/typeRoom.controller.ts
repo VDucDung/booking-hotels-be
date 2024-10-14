@@ -69,7 +69,7 @@ export class TypeRoomController {
     status: HttpStatus.OK,
     description: 'Type room found by ID',
   })
-  async findOne(@Param('id') id: string) {
+  async findOne(@Param('id') id: number) {
     return await this.typeRoomService.findOne(id);
   }
 
@@ -79,7 +79,7 @@ export class TypeRoomController {
   @UseGuards(AuthGuard)
   @PermissionDecorator(EUserPermission.UPDATE_TYPE_ROOM)
   async update(
-    @Param('id') id: string,
+    @Param('id') id: number,
     @Body() updateTypeRoomDto: UpdateTypeRoomDto,
     @UserDecorator() user: any,
   ) {
@@ -91,7 +91,7 @@ export class TypeRoomController {
   @ApiBearerAuth()
   @UseGuards(AuthGuard)
   @PermissionDecorator(EUserPermission.DELETE_TYPE_ROOM)
-  async remove(@Param('id') id: string, @UserDecorator() user: any) {
+  async remove(@Param('id') id: number, @UserDecorator() user: any) {
     return await this.typeRoomService.remove(id, user);
   }
 }

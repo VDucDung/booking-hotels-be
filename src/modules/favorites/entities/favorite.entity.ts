@@ -17,6 +17,6 @@ export class Favorite {
   @JoinColumn({ name: 'user_id' })
   userId: number;
 
-  @OneToMany(() => Hotel, (hotel) => hotel.favoriteId)
+  @OneToMany(() => Hotel, (hotel) => hotel.favorite)
   hotels: number[];
 }

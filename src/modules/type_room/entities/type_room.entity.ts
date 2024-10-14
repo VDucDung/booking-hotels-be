@@ -15,7 +15,7 @@ import {
 @Entity('type_room')
 export class TypeRoom {
   @PrimaryGeneratedColumn('increment')
-  id: string;
+  id: number;
 
   @Column({ nullable: true })
   name: string;
@@ -24,16 +24,15 @@ export class TypeRoom {
   description: string;
 
   @OneToMany(() => Room, (room) => room.typeRoomId)
-  @JoinColumn({ name: 'rooms' })
   rooms: Room[];
 
   @ManyToOne(() => Hotel, (hotel) => hotel.typeRooms, { nullable: true })
-  @JoinColumn({ name: 'hotelId' })
-  hotelId?: Hotel;
+  @JoinColumn({ name: 'hotel_id' })
+  hotel: Hotel;
 
   @ManyToOne(() => User, { nullable: false })
   @JoinColumn({ name: 'partner_id' })
-  partnerId: number;
+  partner: User;
 
   @CreateDateColumn({ name: 'created_at' })
   createdAt: Date;

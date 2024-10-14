@@ -82,13 +82,13 @@ export class User {
   @OneToMany(() => Favorite, (favorite) => favorite.userId)
   favorites: Favorite[];
 
-  @OneToMany(() => Hotel, (hotel) => hotel.partnerId)
+  @OneToMany(() => Hotel, (hotel) => hotel.partner)
   hotels: Hotel[];
 
   @OneToMany(() => Room, (room) => room.partnerId)
   rooms: Room[];
 
-  @OneToMany(() => TypeRoom, (type_room) => type_room.partnerId)
+  @OneToMany(() => TypeRoom, (type_room) => type_room.partner)
   type_rooms: TypeRoom[];
 
   @OneToMany(() => AuthProvider, (authProvider) => authProvider.user, {
