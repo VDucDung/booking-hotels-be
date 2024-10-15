@@ -49,10 +49,23 @@ export class FavoriteService {
       );
     }
 
+    const res = await this.favoriteRepository.findOne({
+      where: {
+        hotel: { id: hotelId },
+      },
+    });
+
+    if (res) {
+      ErrorHelper.BadRequestException(
+        this.localesService.translate(FAVORITE_MESSAGE.FAVORITE_EXISTED),
+      );
+    }
+
     const favorite = this.favoriteRepository.create({
       user: user,
       hotel: hotel,
     });
+
     await this.favoriteRepository.save(favorite);
     delete favorite.user;
     return favorite;
@@ -185,9 +198,9 @@ export class FavoriteService {
       where: {
         id,
       },
-      relations: ['hotelId', 'userId'],
+      relations: ['hotel', 'user'],
     });
-    if (favorite.user.id !== user.id && user.role.name !== 'admin') {
+    if (favorite.user.id !== user.id && user.role.name !== 'ADMIN') {
       ErrorHelper.ForbiddenException(
         this.localesService.translate(AUTH_MESSAGE.NO_PERMISSION),
       );
@@ -213,7 +226,7 @@ export class FavoriteService {
       where: {
         id,
       },
-      relations: ['hotelId', 'userId'],
+      relations: ['hotel', 'user'],
     });
 
     if (!favorite) {
@@ -236,9 +249,9 @@ export class FavoriteService {
   async remove(id: string, user: User): Promise<void> {
     const favorite = await this.findOne({
       where: {
-        id,
+        hotel: { id },
       },
-      relations: ['hotelId', 'userId'],
+      relations: ['hotel', 'user'],
     });
     if (!favorite) {
       ErrorHelper.NotFoundException(
