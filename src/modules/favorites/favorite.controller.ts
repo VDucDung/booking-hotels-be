@@ -9,6 +9,7 @@ import {
   Request,
   UseGuards,
   HttpStatus,
+  Query,
 } from '@nestjs/common';
 import { FavoriteService } from './favorite.service';
 
@@ -24,6 +25,7 @@ import { Favorite } from './entities/favorite.entity';
 import { FAVORITE_MESSAGE } from 'src/messages';
 import { LocalesService } from '../locales/locales.service';
 import { UserDecorator } from 'src/common/decorators/user.decorator';
+import { QueryParamsDto } from '../hotels/dto/query-params.dto';
 
 @Controller('favorites')
 @ApiBearerAuth()
@@ -62,6 +64,35 @@ export class FavoriteController {
       ),
       statusCode: HttpStatus.OK,
       data: await this.favoriteService.findAll(user.id),
+    };
+  }
+
+  @Get('/search')
+  @UseGuards(AuthGuard)
+  async getFavoriteHotels(
+    @Query() queryParams: QueryParamsDto,
+    @UserDecorator() user: User,
+  ): Promise<{
+    message: string;
+    statusCode: number;
+    data: { favorite: Favorite[]; detailResult: any };
+  }> {
+    const { limit, page, keyword, sortBy } = queryParams;
+    const sanitizedLimit = limit && !isNaN(limit) && limit > 0 ? limit : 10;
+    const sanitizedPage = page && !isNaN(page) && page > 0 ? page : 1;
+    const { data, detailResult } = await this.favoriteService.getFavoriteHotels(
+      user.id,
+      sanitizedLimit,
+      sanitizedPage,
+      keyword,
+      sortBy,
+    );
+    return {
+      message: this.localesService.translate(
+        FAVORITE_MESSAGE.GET_FAVORITE_SUCCESS,
+      ),
+      statusCode: HttpStatus.OK,
+      data: { favorite: data, detailResult },
     };
   }
 

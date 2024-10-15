@@ -45,6 +45,12 @@ export class Hotel {
   @JoinColumn({ name: 'favorite_id' })
   favorite?: Favorite;
 
+  @Column({ nullable: true })
+  avgRating?: number;
+
+  @Column({ nullable: true })
+  totalReviews?: number;
+
   @CreateDateColumn({ name: 'created_at' })
   createdAt: Date;
 

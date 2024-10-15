@@ -79,7 +79,7 @@ export class User {
   @OneToMany(() => Review, (review) => review.userId)
   reviews: Review[];
 
-  @OneToMany(() => Favorite, (favorite) => favorite.userId)
+  @OneToMany(() => Favorite, (favorite) => favorite.user)
   favorites: Favorite[];
 
   @OneToMany(() => Hotel, (hotel) => hotel.partner)

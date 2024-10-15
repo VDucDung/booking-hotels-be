@@ -173,6 +173,8 @@ export class HotelService {
         'hotel.address',
         'hotel.description',
         'hotel.images',
+        'hotel.avgRating',
+        'hotel.totalReviews',
         'hotel.createdAt',
         'hotel.updatedAt',
         'hotel.deleted',
@@ -221,23 +223,26 @@ export class HotelService {
       .take(limit)
       .getRawAndEntities();
 
-    const hotels = result.raw;
     const total = result.entities.length;
 
-    const hotelsWithRatings = hotels.map((hotel: any) => {
-      return {
-        ...hotel,
-        hotel_avg_rating:
-          hotel['hotel_avg_rating'] !== null
-            ? parseFloat(hotel['hotel_avg_rating'])
-            : 0,
-        hotel_total_reviews:
-          hotel['hotel_total_reviews'] !== null
-            ? parseInt(hotel['hotel_total_reviews'])
-            : 0,
-        typeRooms: hotel.typeRooms || [],
-      };
-    });
+    const hotelsWithRatings = result.entities.map(
+      (hotel: any, index: number) => {
+        const rawHotel = result.raw[index];
+
+        return {
+          ...hotel,
+          avgRating:
+            rawHotel?.hotel_avg_rating !== null
+              ? parseFloat(rawHotel.hotel_avg_rating)
+              : 0,
+          totalReviews:
+            rawHotel?.hotel_total_reviews !== null
+              ? parseInt(rawHotel.hotel_total_reviews)
+              : 0,
+          typeRooms: hotel.typeRooms || [],
+        };
+      },
+    );
 
     return {
       data: hotelsWithRatings,

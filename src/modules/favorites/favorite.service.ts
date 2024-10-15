@@ -1,4 +1,9 @@
-import { forwardRef, Inject, Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  forwardRef,
+  Inject,
+  Injectable,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Favorite } from './entities/favorite.entity';
@@ -45,8 +50,8 @@ export class FavoriteService {
     }
 
     const favorite = this.favoriteRepository.create({
-      userId: user,
-      hotelId: hotel,
+      user: user,
+      hotel: hotel,
     });
     await this.favoriteRepository.save(favorite);
 
@@ -61,10 +66,120 @@ export class FavoriteService {
       );
     }
     return await this.favoriteRepository.find({
-      where: { userId: { id: userId } },
+      where: { user: { id: userId } },
       relations: ['hotelId'],
     });
   }
+  async getFavoriteHotels(
+    userId: number,
+    limit: number = 10,
+    page: number = 1,
+    keyword?: string,
+    sortBy?: string,
+  ) {
+    const query = this.favoriteRepository
+      .createQueryBuilder('favorite')
+      .leftJoinAndSelect('favorite.hotel', 'hotel')
+      .leftJoin('hotel.reviews', 'reviews')
+      .leftJoinAndSelect('hotel.typeRooms', 'typeRooms')
+      .select([
+        'favorite.id',
+        'hotel.id',
+        'hotel.hotelName',
+        'hotel.address',
+        'hotel.description',
+        'hotel.images',
+        'hotel.avgRating',
+        'hotel.totalReviews',
+        'hotel.createdAt',
+        'hotel.updatedAt',
+        'hotel.deleted',
+        'hotel.partner',
+      ])
+      .addSelect(
+        'ROUND(COALESCE(AVG(reviews.rating), 0), 1)',
+        'hotel_avg_rating',
+      )
+      .addSelect('COUNT(DISTINCT reviews.id)', 'hotel_total_reviews')
+      .where('favorite.user.id = :userId', { userId })
+      .groupBy('hotel.id')
+      .addGroupBy('typeRooms.id')
+      .addGroupBy('favorite.id');
+
+    if (keyword) {
+      query.andWhere(
+        '(hotel.hotelName ILIKE :keyword OR hotel.address ILIKE :keyword OR hotel.description ILIKE :keyword)',
+        { keyword: `%${keyword}%` },
+      );
+    }
+
+    if (sortBy) {
+      const [field, order] = sortBy.split(':');
+      if (this.isValidSortField(field) && this.isValidSortOrder(order)) {
+        if (field === 'rating') {
+          query.orderBy(
+            'hotel_avg_rating',
+            order.toUpperCase() as 'ASC' | 'DESC',
+          );
+        } else {
+          query.orderBy(
+            `hotel.${field}`,
+            order.toUpperCase() as 'ASC' | 'DESC',
+          );
+        }
+      } else {
+        throw new BadRequestException('Invalid sortBy parameter');
+      }
+    } else {
+      query.orderBy('hotel.createdAt', 'DESC');
+    }
+
+    const result = await query
+      .skip((page - 1) * limit)
+      .take(limit)
+      .getRawAndEntities();
+
+    const total = result.entities.length;
+
+    const favoriteHotelsWithRatings = result.entities.map(
+      (hotel: any, index: number) => {
+        const rawHotel = result.raw[index];
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        const { avgRating, totalReviews, ...rest } = hotel.hotel;
+        return {
+          ...rest,
+          avgRating:
+            rawHotel?.hotel_avg_rating !== null
+              ? parseFloat(rawHotel.hotel_avg_rating)
+              : 0,
+          totalReviews:
+            rawHotel?.hotel_total_reviews !== null
+              ? parseInt(rawHotel.hotel_total_reviews)
+              : 0,
+          typeRooms: hotel.typeRooms || [],
+        };
+      },
+    );
+
+    return {
+      data: favoriteHotelsWithRatings,
+      detailResult: {
+        total,
+        page,
+        limit,
+        totalPages: Math.ceil(total / limit),
+      },
+    };
+  }
+
+  private isValidSortField(field: string): boolean {
+    return ['createdAt', 'hotelName', 'address', 'rating'].includes(field);
+  }
+
+  private isValidSortOrder(order: string): boolean {
+    return order.toLowerCase() === 'asc' || order.toLowerCase() === 'desc';
+  }
+
   async findById(id: number, user: User): Promise<Favorite> {
     const favorite = await this.favoriteRepository.findOne({
       where: {
@@ -72,7 +187,7 @@ export class FavoriteService {
       },
       relations: ['hotelId', 'userId'],
     });
-    if (favorite.userId.id !== user.id && user.role.name !== 'admin') {
+    if (favorite.user.id !== user.id && user.role.name !== 'admin') {
       ErrorHelper.ForbiddenException(
         this.localesService.translate(AUTH_MESSAGE.NO_PERMISSION),
       );
@@ -107,7 +222,7 @@ export class FavoriteService {
       );
     }
 
-    if (favorite.userId.id !== user.id) {
+    if (favorite.user.id !== user.id) {
       ErrorHelper.ForbiddenException(
         this.localesService.translate(AUTH_MESSAGE.NO_PERMISSION),
       );
@@ -131,7 +246,7 @@ export class FavoriteService {
       );
     }
 
-    if ((favorite.userId.id as number) !== (user.id as number)) {
+    if ((favorite.user.id as number) !== (user.id as number)) {
       ErrorHelper.ForbiddenException(
         this.localesService.translate(AUTH_MESSAGE.NO_PERMISSION),
       );
