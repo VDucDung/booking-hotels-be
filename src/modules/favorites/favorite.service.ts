@@ -54,7 +54,7 @@ export class FavoriteService {
       hotel: hotel,
     });
     await this.favoriteRepository.save(favorite);
-
+    delete favorite.user;
     return favorite;
   }
 
