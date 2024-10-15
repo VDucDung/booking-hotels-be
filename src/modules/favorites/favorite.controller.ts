@@ -8,6 +8,7 @@ import {
   Patch,
   Request,
   UseGuards,
+  HttpStatus,
 } from '@nestjs/common';
 import { FavoriteService } from './favorite.service';
 
@@ -19,12 +20,19 @@ import { AuthGuard } from 'src/common/guards/auth.guard';
 import { AuthDecorator } from 'src/common/decorators/auth.decorator';
 import { ERole, EUserPermission } from 'src/enums/roles.enum';
 import { PermissionDecorator } from 'src/common/decorators/permission.decorator';
+import { Favorite } from './entities/favorite.entity';
+import { FAVORITE_MESSAGE } from 'src/messages';
+import { LocalesService } from '../locales/locales.service';
+import { UserDecorator } from 'src/common/decorators/user.decorator';
 
 @Controller('favorites')
 @ApiBearerAuth()
 @ApiTags('favorites')
 export class FavoriteController {
-  constructor(private readonly favoriteService: FavoriteService) {}
+  constructor(
+    private readonly favoriteService: FavoriteService,
+    private readonly localesService: LocalesService,
+  ) {}
   @Post()
   @UseGuards(AuthGuard)
   @AuthDecorator([ERole.PARTNER, ERole.ADMIN])
@@ -32,23 +40,44 @@ export class FavoriteController {
   async create(
     @Request() req: any,
     @Body() createFavoriteDto: CreateFavoriteDto,
-  ) {
+  ): Promise<{ message: string; statusCode: number; data: Favorite }> {
     createFavoriteDto.userId = req.user.id;
-    return await this.favoriteService.create(createFavoriteDto);
+    return {
+      message: this.localesService.translate(
+        FAVORITE_MESSAGE.CREATE_FAVORITE_SUCCESS,
+      ),
+      statusCode: HttpStatus.CREATED,
+      data: await this.favoriteService.create(createFavoriteDto),
+    };
   }
 
   @Get()
   @UseGuards(AuthGuard)
-  async findAll(@Request() req: any) {
-    const user: User = req.user;
-    return await this.favoriteService.findAll(user.id);
+  async findAll(
+    @UserDecorator() user: User,
+  ): Promise<{ message: string; statusCode: number; data: Favorite[] }> {
+    return {
+      message: this.localesService.translate(
+        FAVORITE_MESSAGE.GET_FAVORITE_SUCCESS,
+      ),
+      statusCode: HttpStatus.OK,
+      data: await this.favoriteService.findAll(user.id),
+    };
   }
 
   @Get(':id')
   @UseGuards(AuthGuard)
-  async findOne(@Request() req: any, @Param('id') id: string) {
-    const user: User = req.user;
-    return await this.favoriteService.findOne({ id, user });
+  async findOne(
+    @UserDecorator() user: User,
+    @Param('id') id: number,
+  ): Promise<{ message: string; statusCode: number; data: Favorite }> {
+    return {
+      message: this.localesService.translate(
+        FAVORITE_MESSAGE.GET_FAVORITE_SUCCESS,
+      ),
+      statusCode: HttpStatus.OK,
+      data: await this.favoriteService.findById(id, user),
+    };
   }
 
   @Patch(':id')
@@ -56,20 +85,27 @@ export class FavoriteController {
   @AuthDecorator([ERole.PARTNER, ERole.ADMIN])
   @PermissionDecorator(EUserPermission.UPDATE_FAVORITE)
   async update(
-    @Request() req: any,
     @Param('id') id: string,
+    @UserDecorator() user: User,
     @Body() updateFavoriteDto: UpdateFavoriteDto,
   ) {
-    const user: User = req.user;
     return await this.favoriteService.update(id, user, updateFavoriteDto);
   }
 
   @Delete(':id')
   @UseGuards(AuthGuard)
-  @AuthDecorator([ERole.PARTNER, ERole.ADMIN])
+  @AuthDecorator([ERole.USER, ERole.ADMIN])
   @PermissionDecorator(EUserPermission.DELETE_FAVORITE)
-  async remove(@Request() req: any, @Param('id') id: string) {
-    const user: User = req.user;
-    return await this.favoriteService.remove(id, user);
+  async remove(
+    @Param('id') id: string,
+    @UserDecorator() user: User,
+  ): Promise<{ message: string; statusCode: number }> {
+    await this.favoriteService.remove(id, user);
+    return {
+      message: this.localesService.translate(
+        FAVORITE_MESSAGE.DELETE_FAVORITE_SUCCESS,
+      ),
+      statusCode: HttpStatus.OK,
+    };
   }
 }

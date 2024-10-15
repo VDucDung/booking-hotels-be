@@ -2,6 +2,8 @@
   "CREATE_FAVORITE_SUCCESS": "tạo yêu thích thành công",
   "UPDATE_FAVORITE_SUCCESS": "cập nhật yêu thích thành công",
   "DELETE_FAVORITE_SUCCESS": "xóa yêu thích thành công",
+  "GET_FAVORITES_SUCCESS": "lấy danh sách yêu thích thành công",
+  "GET_FAVORITE_SUCCESS": "lây yêu thích thành công",
   "FAVORITE_NOT_FOUND": "yêu thích không tồn tại",
   "FAVORITE_EXISTED": "yêu thích này đã tồn tại",
   "FAVORITE_IDS_INVALID": "các id của yêu thích không hợp lệ"

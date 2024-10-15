@@ -2,6 +2,8 @@
   "CREATE_FAVORITE_SUCCESS": "create favorite successfully",
   "UPDATE_FAVORITE_SUCCESS": "update favorite successfully",
   "DELETE_FAVORITE_SUCCESS": "delete favorite successfully",
+  "GET_FAVORITES_SUCCESS": "get list favorite successfully",
+  "GET_FAVORITE_SUCCESS": "get favorite successfully",
   "FAVORITE_NOT_FOUND": "the favorite not found",
   "FAVORITE_EXISTED": "the favorite already exists",
   "FAVORITE_IDS_INVALID": "the favorite ids are invalid"

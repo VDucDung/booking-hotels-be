@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { forwardRef, Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { HotelService } from './hotel.service';
 import { HotelController } from './hotel.controller';
@@ -24,7 +24,7 @@ import { FavoriteModule } from '../favorites/favorite.module';
     PermissionsModule,
     UploadModule,
     TypeRoomModule,
-    FavoriteModule,
+    forwardRef(() => FavoriteModule),
   ],
   controllers: [HotelController],
   providers: [HotelService],

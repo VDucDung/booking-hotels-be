@@ -9,6 +9,7 @@ import {
   JoinColumn,
   ManyToOne,
   OneToMany,
+  OneToOne,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
@@ -40,7 +41,7 @@ export class Hotel {
   @OneToMany(() => TypeRoom, (typeroom) => typeroom.hotel, { nullable: true })
   typeRooms: TypeRoom[];
 
-  @ManyToOne(() => Favorite, { nullable: true })
+  @OneToOne(() => Favorite, { nullable: true })
   @JoinColumn({ name: 'favorite_id' })
   favorite?: Favorite;
 

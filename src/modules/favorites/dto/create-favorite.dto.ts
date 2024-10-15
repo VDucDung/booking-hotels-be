@@ -1,12 +1,12 @@
-import { IsNotEmpty, IsArray, IsNumber, IsOptional } from 'class-validator';
+import { IsNotEmpty, IsNumber, IsOptional } from 'class-validator';
 
 export class CreateFavoriteDto {
   @IsNumber()
   @IsNotEmpty()
   @IsOptional()
-  userId: number;
+  userId?: number;
 
-  @IsArray()
+  @IsNumber()
   @IsNotEmpty()
-  hotels: number[];
+  hotelId: number;
 }

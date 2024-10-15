@@ -10,6 +10,7 @@ import { AuthModule } from '../auth/auth.module';
 import { PermissionsModule } from '../permissions/permissions.module';
 import { LocalesModule } from '../locales/locales.module';
 import { UserModule } from '../users/user.module';
+import { HotelModule } from '../hotels/hotel.module';
 
 @Module({
   imports: [
@@ -22,6 +23,7 @@ import { UserModule } from '../users/user.module';
     PermissionsModule,
     LocalesModule,
     UserModule,
+    forwardRef(() => HotelModule),
   ],
   controllers: [FavoriteController],
   providers: [FavoriteService],

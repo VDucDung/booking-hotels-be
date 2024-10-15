@@ -5,7 +5,7 @@ import {
   ManyToOne,
   JoinColumn,
   PrimaryGeneratedColumn,
-  OneToMany,
+  OneToOne,
 } from 'typeorm';
 
 @Entity('favorite')
@@ -15,8 +15,9 @@ export class Favorite {
 
   @ManyToOne(() => User, (user) => user.favorites, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'user_id' })
-  userId: number;
+  userId: User;
 
-  @OneToMany(() => Hotel, (hotel) => hotel.favorite)
-  hotels: number[];
+  @OneToOne(() => Hotel, (hotel) => hotel.favorite, { onDelete: 'CASCADE' })
+  @JoinColumn({ name: 'hotel_id' })
+  hotelId: Hotel;
 }
