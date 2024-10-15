@@ -6,7 +6,6 @@ import {
   Param,
   Delete,
   Patch,
-  Request,
   UseGuards,
   HttpStatus,
   Query,
@@ -40,10 +39,10 @@ export class FavoriteController {
   @AuthDecorator([ERole.PARTNER, ERole.ADMIN])
   @PermissionDecorator(EUserPermission.CREATE_FAVORITE)
   async create(
-    @Request() req: any,
+    @UserDecorator() user: User,
     @Body() createFavoriteDto: CreateFavoriteDto,
   ): Promise<{ message: string; statusCode: number; data: Favorite }> {
-    createFavoriteDto.userId = req.user.id;
+    createFavoriteDto.userId = user.id;
     return {
       message: this.localesService.translate(
         FAVORITE_MESSAGE.CREATE_FAVORITE_SUCCESS,

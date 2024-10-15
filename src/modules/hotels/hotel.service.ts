@@ -80,12 +80,11 @@ export class HotelService {
         const image = imageDefault;
         urls = [image];
       }
-
       const hotel = this.hotelRepository.create({
         ...createHotelDto,
         images: urls,
         partner,
-        favorite,
+        favorites: [favorite],
         typeRooms,
       });
 
@@ -117,7 +116,10 @@ export class HotelService {
   }
 
   async findOne(id: number): Promise<Hotel> {
-    const hotel = await this.hotelRepository.findOne({ where: { id } });
+    const hotel = await this.hotelRepository.findOne({
+      where: { id },
+      relations: ['favorites', 'partner', 'typeRooms'],
+    });
     if (!hotel) {
       ErrorHelper.NotFoundException(
         this.localesService.translate(HOTEL_MESSAGE.HOTEL_NOT_FOUND),
@@ -132,7 +134,6 @@ export class HotelService {
     user: User,
   ): Promise<Hotel> {
     const hotel = await this.findOne(id);
-
     if (hotel.partner.id !== user.id && user.role.name !== 'ADMIN') {
       ErrorHelper.ForbiddenException(
         this.localesService.translate(AUTH_MESSAGE.NO_PERMISSION),
@@ -140,6 +141,13 @@ export class HotelService {
     }
 
     Object.assign(hotel, updateHotelDto);
+
+    return this.hotelRepository.save(hotel);
+  }
+
+  async updateFavorite(id: number, favorite: Favorite | null): Promise<Hotel> {
+    const hotel = await this.findOne(id);
+    hotel.favorites.push(favorite);
 
     return this.hotelRepository.save(hotel);
   }
@@ -165,7 +173,7 @@ export class HotelService {
     const query = this.hotelRepository
       .createQueryBuilder('hotel')
       .leftJoin('hotel.reviews', 'reviews')
-      .leftJoinAndSelect('hotel.favorite', 'favorite')
+      .leftJoinAndSelect('hotel.favorites', 'favorites')
       .leftJoinAndSelect('hotel.typeRooms', 'typeRooms')
       .select([
         'hotel.id',
@@ -179,7 +187,8 @@ export class HotelService {
         'hotel.updatedAt',
         'hotel.deleted',
         'hotel.partner',
-        'favorite.id',
+        'favorites.id',
+        'favorites.user',
       ])
       .addSelect(
         'ROUND(COALESCE(AVG(reviews.rating), 0), 1)',
@@ -187,7 +196,7 @@ export class HotelService {
       )
       .addSelect('COUNT(DISTINCT reviews.id)', 'hotel_total_reviews')
       .groupBy('hotel.id')
-      .addGroupBy('favorite.id')
+      .addGroupBy('favorites.id')
       .addGroupBy('typeRooms.id');
 
     if (keyword) {
@@ -228,7 +237,6 @@ export class HotelService {
     const hotelsWithRatings = result.entities.map(
       (hotel: any, index: number) => {
         const rawHotel = result.raw[index];
-
         return {
           ...hotel,
           avgRating:
@@ -240,6 +248,7 @@ export class HotelService {
               ? parseInt(rawHotel.hotel_total_reviews)
               : 0,
           typeRooms: hotel.typeRooms || [],
+          favorites: hotel.favorites || [],
         };
       },
     );

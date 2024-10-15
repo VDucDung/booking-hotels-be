@@ -1,12 +1,6 @@
 import { Hotel } from 'src/modules/hotels/entities/hotel.entity';
 import { User } from 'src/modules/users/entities/user.entity';
-import {
-  Entity,
-  ManyToOne,
-  JoinColumn,
-  PrimaryGeneratedColumn,
-  OneToOne,
-} from 'typeorm';
+import { Entity, ManyToOne, JoinColumn, PrimaryGeneratedColumn } from 'typeorm';
 
 @Entity('favorite')
 export class Favorite {
@@ -17,7 +11,7 @@ export class Favorite {
   @JoinColumn({ name: 'user_id' })
   user: User;
 
-  @OneToOne(() => Hotel, (hotel) => hotel.favorite, { onDelete: 'CASCADE' })
+  @ManyToOne(() => Hotel, (hotel) => hotel.favorites, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'hotel_id' })
   hotel: Hotel;
 }

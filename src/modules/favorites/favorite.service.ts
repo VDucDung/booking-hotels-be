@@ -66,8 +66,10 @@ export class FavoriteService {
       hotel: hotel,
     });
 
+    await this.hotelService.updateFavorite(hotel.id, favorite);
     await this.favoriteRepository.save(favorite);
     delete favorite.user;
+    delete favorite.hotel.partner;
     return favorite;
   }
 
@@ -265,6 +267,9 @@ export class FavoriteService {
       );
     }
 
+    const hotel = await this.hotelService.findOne(favorite.hotel.id);
+
+    await this.hotelService.updateFavorite(hotel.id, null);
     await this.favoriteRepository.remove(favorite);
   }
 }
