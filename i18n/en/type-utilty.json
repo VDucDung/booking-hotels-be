@@ -1,0 +1,8 @@
+{
+  "CREATE_TYPE_UTILITY_SUCCESS": "create type utiliy successfully",
+  "UPDATE_TYPE_UTILITY_SUCCESS": "update type utiliy successfully",
+  "DELETE_TYPE_UTILITY_SUCCESS": "delete type utiliy successfully",
+  "TYPE_UTILITY_NOT_FOUND": "the type utiliy not found",
+  "TYPE_UTILITY_EXISTED": "the type utiliy already exists",
+  "TYPE_UTILITY_IDS_INVALID": "the type utiliy ids are invalid"
+}

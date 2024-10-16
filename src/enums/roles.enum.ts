@@ -65,4 +65,10 @@ export const enum EUserPermission {
   GET_REVIEW = 'get_REVIEW',
   UPDATE_REVIEW = 'update_REVIEW',
   DELETE_REVIEW = 'delete_REVIEW',
+  // type utilities
+  CREATE_TYPE_UTILITY = 'create_type_utility',
+  GET_TYPE_UTILITIES = 'get_type_utilities',
+  GET_TYPE_UTILITY = 'get_type_utility',
+  UPDATE_TYPE_UTILITY = 'update_type_utility',
+  DELETE_TYPE_UTILITY = 'delete_type_utility',
 }

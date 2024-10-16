@@ -26,6 +26,8 @@ import { FavoriteModule } from './modules/favorites/favorite.module';
 import { ReviewModule } from './modules/review/review.module';
 import { AuthProviderModule } from './modules/auth_provider/authProvider.module';
 import { CategoryModule } from './modules/category/category.module';
+import { UtilityModule } from './modules/utilities/utility.module';
+import { TypeUtilityModule } from './modules/type_utility/type_utility.module';
 
 @Module({
   imports: [
@@ -74,6 +76,8 @@ import { CategoryModule } from './modules/category/category.module';
     ReviewModule,
     AuthProviderModule,
     CategoryModule,
+    TypeUtilityModule,
+    UtilityModule,
   ],
   controllers: [AppController],
   providers: [AppService],

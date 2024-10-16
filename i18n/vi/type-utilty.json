@@ -1,0 +1,8 @@
+{
+  "CREATE_TYPE_UTILITY_SUCCESS": "tạo loại tiện ích thành công",
+  "UPDATE_TYPE_UTILITY_SUCCESS": "cập nhật loại tiện ích thành công",
+  "DELETE_TYPE_UTILITY_SUCCESS": "xóa loại tiện ích thành công",
+  "TYPE_UTILITY_NOT_FOUND": "loại tiện ích không tồn tại",
+  "TYPE_UTILITY_EXISTED": "loại tiện ích này đã tồn tại",
+  "TYPE_UTILITY_IDS_INVALID": "các id của loại tiện ích không hợp lệ"
+}

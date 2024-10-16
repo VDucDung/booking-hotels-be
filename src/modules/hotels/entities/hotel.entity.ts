@@ -12,6 +12,7 @@ import {
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
+import { TypeUtility } from 'src/modules/type_utility/entities/type_utility.entity';
 
 @Entity('hotel')
 export class Hotel {
@@ -48,6 +49,11 @@ export class Hotel {
 
   @Column({ nullable: true })
   totalReviews?: number;
+
+  @OneToMany(() => TypeUtility, (typeroom) => typeroom.hotel, {
+    nullable: true,
+  })
+  typeUtility: TypeUtility[];
 
   @CreateDateColumn({ name: 'created_at' })
   createdAt: Date;
