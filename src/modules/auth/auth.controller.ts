@@ -193,4 +193,18 @@ export class AuthController {
       ),
     };
   }
+
+  @Post('refresh-tokens')
+  @HttpCode(HttpStatus.OK)
+  async refreshToken(
+    @Body('refreshToken') refreshToken: string,
+  ): Promise<{ statusCode: number; message: string; data: string }> {
+    const { accessToken } = await this.authService.refreshToken(refreshToken);
+
+    return {
+      statusCode: HttpStatus.OK,
+      message: this.localesService.translate(AUTH_MESSAGE.REFRESH_TOKEN),
+      data: accessToken,
+    };
+  }
 }

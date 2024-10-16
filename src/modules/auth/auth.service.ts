@@ -8,6 +8,7 @@ import {
   EXPIRES_TOKEN_EMAIL_VERIFY,
   EXPIRES_TOKEN_FOTGOT_PASSWORD,
   EXPIRES_TOKEN_VERIFY_OTP_FORGOT,
+  JWT,
   nodeEnv,
   SECRET,
   TIME_DIFF_EMAIL_VERIFY,
@@ -387,5 +388,29 @@ export class AuthService {
     user.forgotStatus = USER_FORGOT_STATUS_ENUM.NULL;
 
     await this.userRepository.save(user);
+  }
+
+  async refreshToken(refressToken: string): Promise<{ accessToken: string }> {
+    const payload = this.jwtService.verify(refressToken, {
+      secret: JWT.secretRefresh,
+    });
+
+    if (!payload || payload.type !== TOKEN_TYPES.refresh) {
+      ErrorHelper.BadRequestException(AUTH_MESSAGE.TOKEN_INVALID);
+    }
+
+    const user = await this.userService.getUserByEmail(payload.email);
+    if (!user) {
+      ErrorHelper.UnauthorizedException(AUTH_MESSAGE.TOKEN_INVALID);
+    }
+
+    if (user.isLocked) {
+      ErrorHelper.UnauthorizedException(USER_MESSAGE.LOCKED);
+    }
+
+    const data = { id: user.id, email: user.email };
+    const accessToken = this.generateToken(TOKEN_TYPES.access, data);
+
+    return { accessToken };
   }
 }

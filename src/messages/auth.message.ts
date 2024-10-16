@@ -15,4 +15,5 @@ export const AUTH_MESSAGE = {
   NO_PERMISSION: 'auth.NO_PERMISSION' as never,
   TOKEN_EXPIRED: 'auth.TOKEN_EXPIRED' as never,
   TOKEN_INVALID: 'auth.TOKEN_INVALID' as never,
+  REFRESH_TOKEN: 'auth.REFRESH_TOKEN' as never,
 };
