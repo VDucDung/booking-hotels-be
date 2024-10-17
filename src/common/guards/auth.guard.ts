@@ -42,6 +42,11 @@ export class AuthGuard implements CanActivate {
         secret: JWT.secretAccess,
       });
     } catch (err) {
+      if (err.name === 'TokenExpiredError') {
+        ErrorHelper.UnauthorizedException(
+          this.localesService.translate(AUTH_MESSAGE.TOKEN_EXPIRED),
+        );
+      }
       ErrorHelper.UnauthorizedException(
         this.localesService.translate(AUTH_MESSAGE.TOKEN_INVALID),
       );
