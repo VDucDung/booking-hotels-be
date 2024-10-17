@@ -118,13 +118,20 @@ export class HotelService {
   async findOne(id: number): Promise<Hotel> {
     const hotel = await this.hotelRepository.findOne({
       where: { id },
-      relations: ['favorites', 'partner', 'typeRooms'],
+      relations: ['favorites', 'typeRooms', 'partner'],
+      select: {
+        partner: {
+          id: true,
+        },
+      },
     });
+
     if (!hotel) {
       ErrorHelper.NotFoundException(
         this.localesService.translate(HOTEL_MESSAGE.HOTEL_NOT_FOUND),
       );
     }
+
     return hotel;
   }
 

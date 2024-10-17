@@ -23,6 +23,9 @@ export class Room {
   @Column({ nullable: true })
   description: string;
 
+  @Column({ nullable: false, default: 1 })
+  capacity: number;
+
   @Column({ type: 'text', array: true })
   images: string[];
 

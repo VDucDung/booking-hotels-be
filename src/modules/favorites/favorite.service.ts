@@ -202,6 +202,11 @@ export class FavoriteService {
       },
       relations: ['hotel', 'user'],
     });
+    if (!favorite) {
+      ErrorHelper.NotFoundException(
+        this.localesService.translate(FAVORITE_MESSAGE.FAVORITE_NOT_FOUND),
+      );
+    }
     if (favorite.user.id !== user.id && user.role.name !== 'ADMIN') {
       ErrorHelper.ForbiddenException(
         this.localesService.translate(AUTH_MESSAGE.NO_PERMISSION),
