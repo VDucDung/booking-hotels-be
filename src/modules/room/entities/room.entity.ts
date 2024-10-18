@@ -30,11 +30,14 @@ export class Room {
   images: string[];
 
   @Column({
-    type: 'text',
-    array: true,
+    type: 'json',
     nullable: true,
   })
-  option?: string[];
+  options?: {
+    feature: string;
+    availability: boolean;
+    [key: string]: any;
+  }[];
 
   @Column({ nullable: false, default: 0 })
   price: number;

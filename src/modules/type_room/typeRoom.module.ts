@@ -18,6 +18,7 @@ import { JWT } from 'src/constants';
     PermissionsModule,
     LocalesModule,
     UserModule,
+    forwardRef(() => HotelModule),
     JwtModule.register({
       secret: JWT.secretAccess,
       signOptions: { expiresIn: JWT.expiresAccessToken },

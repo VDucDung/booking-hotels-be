@@ -23,7 +23,7 @@ import { FavoriteModule } from '../favorites/favorite.module';
     UserModule,
     PermissionsModule,
     UploadModule,
-    TypeRoomModule,
+    forwardRef(() => TypeRoomModule),
     forwardRef(() => FavoriteModule),
   ],
   controllers: [HotelController],

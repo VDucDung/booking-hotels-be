@@ -11,6 +11,7 @@ import {
   UseGuards,
   UseInterceptors,
   UploadedFile,
+  UploadedFiles,
 } from '@nestjs/common';
 import { Room } from './entities/room.entity';
 import { CreateRoomDto } from './dto/create-room.dto';
@@ -28,7 +29,7 @@ import {
 } from '@nestjs/swagger';
 import { PermissionDecorator } from 'src/common/decorators/permission.decorator';
 import { AuthGuard } from 'src/common/guards/auth.guard';
-import { FileInterceptor } from '@nestjs/platform-express';
+import { FileInterceptor, FilesInterceptor } from '@nestjs/platform-express';
 import { EUserPermission } from 'src/enums/roles.enum';
 import { multerOptions } from '../uploads/options/multer.option';
 import { UserDecorator } from 'src/common/decorators/user.decorator';
@@ -43,15 +44,40 @@ export class RoomController {
 
   @Post()
   @HttpCode(HttpStatus.CREATED)
-  @ApiOperation({ summary: 'API Upload file to cloudinary' })
   @ApiConsumes('multipart/form-data')
   @ApiBody({
     schema: {
       type: 'object',
+      required: ['roomName', 'price', 'typeRoomId'],
       properties: {
-        file: {
+        files: {
+          type: 'array',
+          items: {
+            type: 'string',
+            format: 'binary',
+          },
+        },
+        roomName: {
           type: 'string',
-          format: 'binary',
+        },
+        description: {
+          type: 'string',
+        },
+        options: {
+          type: 'array',
+          items: {
+            type: 'object',
+            properties: {
+              feature: { type: 'string' },
+              availability: { type: 'boolean' },
+            },
+          },
+        },
+        price: {
+          type: 'number',
+        },
+        typeRoomId: {
+          type: 'number',
         },
       },
     },
@@ -59,15 +85,19 @@ export class RoomController {
   @ApiBearerAuth()
   @UseGuards(AuthGuard)
   @PermissionDecorator(EUserPermission.CREATE_ROOM)
-  @UseInterceptors(FileInterceptor('file', multerOptions.fileFilter))
+  @UseInterceptors(FilesInterceptor('files', 10, multerOptions.fileFilter))
   async create(
     @Body() createRoomDto: CreateRoomDto,
-    @UploadedFile() file,
-    @UserDecorator() user: any,
+    @UploadedFiles() files: Array<Express.Multer.File>,
+    @UserDecorator() user: { id: number },
   ): Promise<{ message: string; data: Room }> {
+    createRoomDto.partnerId = user.id;
+
+    const newRoom = await this.roomService.create(createRoomDto, files);
+
     return {
       message: this.localesService.translate(ROOM_MESSAGE.CREATE_ROOM_SUCCESS),
-      data: await this.roomService.create(createRoomDto, user, file),
+      data: newRoom,
     };
   }
 

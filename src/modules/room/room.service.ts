@@ -9,6 +9,7 @@ import { AUTH_MESSAGE, ROOM_MESSAGE } from 'src/messages';
 import { LocalesService } from '../locales/locales.service';
 import { ErrorHelper } from 'src/common/helpers';
 import { User } from '../users/entities/user.entity';
+import { imageDefault } from 'src/constants/image-default.constants';
 
 @Injectable()
 export class RoomService {
@@ -21,19 +22,30 @@ export class RoomService {
 
   async create(
     createRoomDto: CreateRoomDto,
-    userId: number,
-    file: any,
+    files: Array<Express.Multer.File>,
   ): Promise<Room> {
-    createRoomDto.partnerId = userId;
+    let urls: string[];
 
-    let url = createRoomDto.images[0];
-    if (file) {
-      url = await this.uploadService.uploadImage(file);
-      createRoomDto.images = [url];
+    try {
+      if (files && files.length > 0) {
+        const uploadPromises = files.map((file) =>
+          this.uploadService.uploadImage(file),
+        );
+        urls = await Promise.all(uploadPromises);
+      } else {
+        urls = [imageDefault];
+      }
+    } catch (error) {
+      throw new Error(`Error uploading images: ${error.message}`);
     }
 
-    const newRoom = this.roomRepository.create(createRoomDto);
+    const newRoom = this.roomRepository.create({
+      ...createRoomDto,
+      images: urls,
+    });
+
     await this.roomRepository.save(newRoom);
+
     return newRoom;
   }
 

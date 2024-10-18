@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { forwardRef, Inject, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { FindManyOptions, Repository, In, Connection } from 'typeorm';
 import { TypeRoom } from './entities/type_room.entity';
@@ -9,6 +9,7 @@ import { LocalesService } from '../locales/locales.service';
 import { AUTH_MESSAGE, TYPE_ROOM_MESSAGE } from 'src/messages';
 import { User } from '../users/entities/user.entity';
 import { Hotel } from '../hotels/entities/hotel.entity';
+import { HotelService } from '../hotels/hotel.service';
 
 @Injectable()
 export class TypeRoomService {
@@ -17,6 +18,9 @@ export class TypeRoomService {
     private readonly typeRoomRepository: Repository<TypeRoom>,
     private readonly localesService: LocalesService,
     private readonly connection: Connection,
+
+    @Inject(forwardRef(() => HotelService))
+    private readonly hotelService: HotelService,
   ) {}
 
   async create(
@@ -76,6 +80,14 @@ export class TypeRoomService {
     return this.typeRoomRepository.find({
       where: { id: In(ids) },
       relations: ['hotel', 'rooms'],
+    });
+  }
+
+  async getTypeRoomByHotelId(hotelId: number): Promise<TypeRoom[]> {
+    const hotel = await this.hotelService.findOne(hotelId);
+    return this.typeRoomRepository.find({
+      where: { hotel: { id: hotel.id } },
+      relations: ['rooms'],
     });
   }
 
