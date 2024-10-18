@@ -62,15 +62,12 @@ export class TypeRoomController {
     return await this.typeRoomService.findAll();
   }
 
-  @Get(':hotelId')
+  @Get('hotel/:hotelId')
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'Get type room by ID' })
   @ApiResponse({
     status: HttpStatus.OK,
-    description: 'Type room found by ID',
   })
   async getTypeRoomByHotelId(@Param('hotelId') hotelId: number) {
-    console.log(hotelId);
     return await this.typeRoomService.getTypeRoomByHotelId(hotelId);
   }
 
