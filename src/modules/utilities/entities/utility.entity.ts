@@ -13,7 +13,7 @@ export class Utility {
   @PrimaryGeneratedColumn('increment')
   id: number;
 
-  @Column({ nullable: false, unique: true })
+  @Column({ nullable: false })
   name: string;
 
   @ManyToOne(() => TypeUtility, (typeUtility) => typeUtility.utilities, {
