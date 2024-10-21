@@ -39,6 +39,12 @@ export class TypeUtilityController {
     return this.typeUtilityService.findAll();
   }
 
+  @Get('hotel/:hotelId')
+  @PermissionDecorator(EUserPermission.GET_TYPE_UTILITY)
+  findByHotelId(@Param('hotelId') hotelId: number): Promise<TypeUtility[]> {
+    return this.typeUtilityService.findByHotelId(hotelId);
+  }
+
   @Get(':id')
   @ApiBearerAuth()
   @UseGuards(AuthGuard)

@@ -51,8 +51,28 @@ export class TypeUtilityService {
     return this.typeUtilityRepository.find({ relations: ['utilities'] });
   }
 
+  async findByHotelId(hotelId: number): Promise<TypeUtility[]> {
+    console.log(hotelId);
+    const hotel = await this.hotelService.findOne(hotelId);
+    const typeUtility = await this.typeUtilityRepository.find({
+      where: {
+        hotel: {
+          id: hotel.id,
+        },
+      },
+      relations: ['utilities'],
+    });
+    if (!typeUtility) {
+      ErrorHelper.NotFoundException(
+        this.localesService.translate(
+          TYPE_UTILITY_MESSAGE.TYPE_UTILITY_NOT_FOUND,
+        ),
+      );
+    }
+    return typeUtility;
+  }
+
   async findOne(id: number): Promise<TypeUtility> {
-    console.log(id);
     const typeUtility = await this.typeUtilityRepository.findOne({
       where: { id },
       relations: ['utilities'],
