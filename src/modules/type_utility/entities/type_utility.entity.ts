@@ -16,7 +16,7 @@ export class TypeUtility {
   @PrimaryGeneratedColumn('increment')
   id: number;
 
-  @Column({ nullable: false, unique: true })
+  @Column({ nullable: false })
   name: string;
 
   @ManyToOne(() => Hotel, (hotel) => hotel.typeUtility, { nullable: true })
