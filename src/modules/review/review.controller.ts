@@ -9,6 +9,7 @@ import {
   UseGuards,
   UseInterceptors,
   UploadedFiles,
+  Query,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -30,6 +31,7 @@ import { PermissionDecorator } from 'src/common/decorators/permission.decorator'
 import { UserDecorator } from 'src/common/decorators/user.decorator';
 import { FilesInterceptor } from '@nestjs/platform-express';
 import { multerOptions } from '../uploads/options/multer.option';
+import { GetReviewDto } from './dto/get-review.dto';
 
 @ApiTags('reviews')
 @Controller('reviews')
@@ -91,6 +93,23 @@ export class ReviewController {
         REVIEW_MESSAGE.GET_LIST_REVIEW_SUCCESS,
       ),
       data: await this.reviewService.findAll(),
+    };
+  }
+
+  @Get('hotel/:hotelId')
+  async getReviewByHotelId(
+    @Param('hotelId') hotelId: number,
+    @Query() filter: GetReviewDto,
+  ): Promise<{ message: string; data: any }> {
+    return {
+      message: this.localesService.translate(REVIEW_MESSAGE.GET_REVIEW_SUCCESS),
+      data: await this.reviewService.findByHotelId({
+        hotelId: hotelId,
+        sortByCreatedAt: filter.sortByCreatedAt === 'DESC' ? 'DESC' : 'ASC',
+        hasImages: filter.hasImages === 'True' ? true : false,
+        startDate: filter.startDate,
+        endDate: filter.endDate,
+      }),
     };
   }
 

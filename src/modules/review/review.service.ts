@@ -1,13 +1,20 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { IsNull, Not, Repository } from 'typeorm';
 import { Review } from 'src/modules/review/entities/review.entity';
 import { CreateReviewDto } from 'src/modules/review/dto/create-review.dto';
 import { UpdateReviewDto } from 'src/modules/review/dto/update-review.dto';
 import { ErrorHelper } from 'src/common/helpers';
-import { REVIEW_MESSAGE } from 'src/messages';
+import { HOTEL_MESSAGE, REVIEW_MESSAGE, USER_MESSAGE } from 'src/messages';
 import { UploadService } from '../uploads/upload.service';
 import { imageDefault } from 'src/constants/image-default.constants';
+import { UserService } from '../users/user.service';
+import { HotelService } from '../hotels/hotel.service';
+import {
+  ReviewFilterDto,
+  ReviewResponse,
+  ReviewStatistics,
+} from 'src/interfaces/review.interface';
 
 @Injectable()
 export class ReviewService {
@@ -16,6 +23,10 @@ export class ReviewService {
     private readonly reviewRepository: Repository<Review>,
 
     private readonly uploadService: UploadService,
+
+    private readonly userService: UserService,
+
+    private readonly hotelService: HotelService,
   ) {}
 
   async create(
@@ -35,7 +46,24 @@ export class ReviewService {
 
     createReviewDto.images = urls;
 
-    const review = this.reviewRepository.create(createReviewDto);
+    const user = await this.userService.getUserById(createReviewDto.userId);
+
+    if (!user) {
+      ErrorHelper.NotFoundException(USER_MESSAGE.USER_NOT_FOUND);
+    }
+
+    const hotel = await this.hotelService.findOne(createReviewDto.hotelId);
+
+    if (hotel) {
+      ErrorHelper.NotFoundException(HOTEL_MESSAGE.HOTEL_NOT_FOUND);
+    }
+
+    const review = this.reviewRepository.create({
+      ...createReviewDto,
+      userId: user,
+      hotelId: hotel,
+    });
+
     return await this.reviewRepository.save(review);
   }
 
@@ -51,13 +79,99 @@ export class ReviewService {
     return review;
   }
 
-  async findByHotelId(hotelId: number): Promise<Review[]> {
-    return await this.reviewRepository.find({ where: { hotelId } });
-  }
+  async findByHotelId(filter: ReviewFilterDto): Promise<ReviewResponse> {
+    const whereConditions: any = {
+      hotelId: {
+        id: filter.hotelId,
+      },
+    };
 
+    if (filter.startDate || filter.endDate) {
+      whereConditions.createdAt = {};
+      if (filter.startDate) {
+        whereConditions.createdAt.gte = filter.startDate;
+      }
+      if (filter.endDate) {
+        whereConditions.createdAt.lte = filter.endDate;
+      }
+    }
+
+    if (filter.hasImages !== undefined) {
+      if (filter.hasImages) {
+        whereConditions.images = Not(IsNull());
+      } else {
+        whereConditions.images = IsNull();
+      }
+    }
+
+    const reviews = await this.reviewRepository.find({
+      where: whereConditions,
+      relations: ['userId'],
+      select: {
+        userId: {
+          id: true,
+          fullname: true,
+          avatar: true,
+        },
+      },
+      order: {
+        createdAt: filter.sortByCreatedAt || 'DESC',
+      },
+    });
+
+    const statistics: ReviewStatistics = {
+      averageRating: 0,
+      ratingDistribution: {
+        oneStar: 0,
+        twoStars: 0,
+        threeStars: 0,
+        fourStars: 0,
+        fiveStars: 0,
+      },
+    };
+
+    if (reviews.length > 0) {
+      const totalRating = reviews.reduce(
+        (sum, review) => sum + review.rating,
+        0,
+      );
+      statistics.averageRating = Number(
+        (totalRating / reviews.length).toFixed(1),
+      );
+
+      reviews.forEach((review) => {
+        switch (review.rating) {
+          case 1:
+            statistics.ratingDistribution.oneStar++;
+            break;
+          case 2:
+            statistics.ratingDistribution.twoStars++;
+            break;
+          case 3:
+            statistics.ratingDistribution.threeStars++;
+            break;
+          case 4:
+            statistics.ratingDistribution.fourStars++;
+            break;
+          case 5:
+            statistics.ratingDistribution.fiveStars++;
+            break;
+        }
+      });
+    }
+
+    return {
+      reviews,
+      statistics,
+    };
+  }
   async findByUserId(userId: number): Promise<Review[]> {
     return await this.reviewRepository.find({
-      where: { userId },
+      where: {
+        userId: {
+          id: userId,
+        },
+      },
     });
   }
 
@@ -85,7 +199,28 @@ export class ReviewService {
 
     const updatedReview = { ...review, ...updateReviewDto };
     updatedReview.images = urls;
-    return await this.reviewRepository.save(updatedReview);
+
+    const user = await this.userService.getUserById(
+      updatedReview.userId as number,
+    );
+
+    if (!user) {
+      ErrorHelper.NotFoundException(USER_MESSAGE.USER_NOT_FOUND);
+    }
+
+    const hotel = await this.hotelService.findOne(
+      updatedReview.hotelId as number,
+    );
+
+    if (hotel) {
+      ErrorHelper.NotFoundException(HOTEL_MESSAGE.HOTEL_NOT_FOUND);
+    }
+
+    return await this.reviewRepository.save({
+      ...updateReviewDto,
+      userId: user,
+      hotelId: hotel,
+    });
   }
 
   async remove(id: number): Promise<void> {

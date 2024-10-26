@@ -9,6 +9,7 @@ import { PermissionsModule } from '../permissions/permissions.module';
 import { UserModule } from '../users/user.module';
 import { JwtModule } from '@nestjs/jwt';
 import { JWT } from 'src/constants';
+import { HotelModule } from '../hotels/hotel.module';
 
 @Module({
   imports: [
@@ -16,6 +17,8 @@ import { JWT } from 'src/constants';
     LocalesModule,
     UploadModule,
     PermissionsModule,
+    UserModule,
+    HotelModule,
     UserModule,
     JwtModule.register({
       secret: JWT.secretAccess,

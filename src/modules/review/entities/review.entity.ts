@@ -19,16 +19,16 @@ export class Review {
 
   @ManyToOne(() => User, (user) => user.reviews)
   @JoinColumn({ name: 'user_id' })
-  userId: number;
+  userId: User;
 
   @ManyToOne(() => Hotel, (hotel) => hotel.reviews)
   @JoinColumn({ name: 'hotel_id' })
-  hotelId: number;
+  hotelId: Hotel;
 
   @Column({ type: 'varchar', length: 255 })
   comment: string;
 
-  @Column({ type: 'text', array: true })
+  @Column({ type: 'text', array: true, nullable: true })
   images: string[];
 
   @Column({

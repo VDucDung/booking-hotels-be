@@ -118,9 +118,12 @@ export class HotelService {
   async findOne(id: number): Promise<Hotel> {
     const hotel = await this.hotelRepository.findOne({
       where: { id },
-      relations: ['favorites', 'typeRooms', 'partner'],
+      relations: ['favorites', 'partner'],
       select: {
         partner: {
+          id: true,
+        },
+        reviews: {
           id: true,
         },
       },
