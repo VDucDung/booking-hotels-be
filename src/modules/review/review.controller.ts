@@ -106,7 +106,7 @@ export class ReviewController {
       data: await this.reviewService.findByHotelId({
         hotelId: hotelId,
         sortByCreatedAt: filter.sortByCreatedAt === 'DESC' ? 'DESC' : 'ASC',
-        hasImages: filter.hasImages === 'True' ? true : false,
+        hasImages: filter.hasImages === 'true' ? true : false,
         startDate: filter.startDate,
         endDate: filter.endDate,
       }),

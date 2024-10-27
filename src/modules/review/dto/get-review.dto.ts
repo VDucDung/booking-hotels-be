@@ -8,8 +8,8 @@ export enum SortOrder {
 }
 
 export enum HasImages {
-  True = 'True',
-  False = 'False',
+  True = 'true',
+  False = 'false',
 }
 
 export class GetReviewDto {
