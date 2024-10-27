@@ -184,7 +184,6 @@ export class HotelService {
       .createQueryBuilder('hotel')
       .leftJoin('hotel.reviews', 'reviews')
       .leftJoinAndSelect('hotel.favorites', 'favorites')
-      .leftJoinAndSelect('hotel.typeRooms', 'typeRooms')
       .select([
         'hotel.id',
         'hotel.hotelName',
@@ -206,8 +205,7 @@ export class HotelService {
       )
       .addSelect('COUNT(DISTINCT reviews.id)', 'hotel_total_reviews')
       .groupBy('hotel.id')
-      .addGroupBy('favorites.id')
-      .addGroupBy('typeRooms.id');
+      .addGroupBy('favorites.id');
 
     if (keyword) {
       query.andWhere(
@@ -243,7 +241,6 @@ export class HotelService {
       .getRawAndEntities();
 
     const total = result.entities.length;
-
     const hotelsWithRatings = result.entities.map(
       (hotel: any, index: number) => {
         const rawHotel = result.raw[index];
@@ -257,7 +254,6 @@ export class HotelService {
             rawHotel?.hotel_total_reviews !== null
               ? parseInt(rawHotel.hotel_total_reviews)
               : 0,
-          typeRooms: hotel.typeRooms || [],
           favorites: hotel.favorites || [],
         };
       },
