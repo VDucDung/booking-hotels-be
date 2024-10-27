@@ -11,10 +11,12 @@ import { imageDefault } from 'src/constants/image-default.constants';
 import { UserService } from '../users/user.service';
 import { HotelService } from '../hotels/hotel.service';
 import {
+  PaginationInfo,
   ReviewFilterDto,
   ReviewResponse,
   ReviewStatistics,
 } from 'src/interfaces/review.interface';
+import { HasImages } from 'src/enums/review.enum';
 
 @Injectable()
 export class ReviewService {
@@ -96,13 +98,21 @@ export class ReviewService {
       }
     }
 
-    if (filter.hasImages !== undefined) {
-      if (filter.hasImages) {
+    if (filter.hasImages !== HasImages.All) {
+      if (filter.hasImages === HasImages.True) {
         whereConditions.images = Not(IsNull());
-      } else {
+      } else if (filter.hasImages === HasImages.False) {
         whereConditions.images = IsNull();
       }
     }
+
+    const total = await this.reviewRepository.count({
+      where: whereConditions,
+    });
+
+    const page = filter.page || 1;
+    const limit = filter.limit || 10;
+    const skip = (page - 1) * limit;
 
     const reviews = await this.reviewRepository.find({
       where: whereConditions,
@@ -117,10 +127,18 @@ export class ReviewService {
       order: {
         createdAt: filter.sortByCreatedAt || 'DESC',
       },
+      skip,
+      take: limit,
+    });
+
+    const allReviews = await this.reviewRepository.find({
+      where: whereConditions,
+      select: ['rating'],
     });
 
     const statistics: ReviewStatistics = {
       averageRating: 0,
+      totalReviews: allReviews.length,
       ratingDistribution: {
         oneStar: 0,
         twoStars: 0,
@@ -130,39 +148,42 @@ export class ReviewService {
       },
     };
 
-    if (reviews.length > 0) {
-      const totalRating = reviews.reduce(
+    if (allReviews.length > 0) {
+      const totalRating = allReviews.reduce(
         (sum, review) => sum + review.rating,
         0,
       );
       statistics.averageRating = Number(
-        (totalRating / reviews.length).toFixed(1),
+        (totalRating / allReviews.length).toFixed(1),
       );
 
-      reviews.forEach((review) => {
-        switch (review.rating) {
-          case 1:
-            statistics.ratingDistribution.oneStar++;
-            break;
-          case 2:
-            statistics.ratingDistribution.twoStars++;
-            break;
-          case 3:
-            statistics.ratingDistribution.threeStars++;
-            break;
-          case 4:
-            statistics.ratingDistribution.fourStars++;
-            break;
-          case 5:
-            statistics.ratingDistribution.fiveStars++;
-            break;
+      allReviews.forEach((review) => {
+        const ratingKey = {
+          1: 'oneStar',
+          2: 'twoStars',
+          3: 'threeStars',
+          4: 'fourStars',
+          5: 'fiveStars',
+        }[review.rating] as keyof typeof statistics.ratingDistribution;
+
+        if (ratingKey) {
+          statistics.ratingDistribution[ratingKey]++;
         }
       });
     }
 
+    const totalPages = Math.ceil(total / limit);
+    const pagination: PaginationInfo = {
+      total,
+      page,
+      limit,
+      totalPages,
+    };
+
     return {
       reviews,
       statistics,
+      pagination,
     };
   }
   async findByUserId(userId: number): Promise<Review[]> {

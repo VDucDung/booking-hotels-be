@@ -1,18 +1,16 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsEnum, IsOptional, IsDateString } from 'class-validator';
 import { Type } from 'class-transformer';
+import {
+  IsDateString,
+  IsEnum,
+  IsNumber,
+  IsOptional,
+  Max,
+  Min,
+} from 'class-validator';
+import { HasImages, SortOrder } from 'src/enums/review.enum';
 
-export enum SortOrder {
-  ASC = 'ASC',
-  DESC = 'DESC',
-}
-
-export enum HasImages {
-  True = 'true',
-  False = 'false',
-}
-
-export class GetReviewDto {
+export class ReviewFilterDto {
   @ApiProperty({
     enum: SortOrder,
     required: false,
@@ -46,4 +44,23 @@ export class GetReviewDto {
   @IsOptional()
   @Type(() => Date)
   endDate?: Date;
+
+  @ApiProperty({
+    type: Number,
+    required: false,
+  })
+  @IsOptional()
+  @IsNumber()
+  @Min(1)
+  page?: number = 1;
+
+  @ApiProperty({
+    type: Number,
+    required: false,
+  })
+  @IsOptional()
+  @IsNumber()
+  @Min(1)
+  @Max(100)
+  limit?: number = 10;
 }

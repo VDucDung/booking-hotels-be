@@ -31,7 +31,8 @@ import { PermissionDecorator } from 'src/common/decorators/permission.decorator'
 import { UserDecorator } from 'src/common/decorators/user.decorator';
 import { FilesInterceptor } from '@nestjs/platform-express';
 import { multerOptions } from '../uploads/options/multer.option';
-import { GetReviewDto } from './dto/get-review.dto';
+import { HasImages } from 'src/enums/review.enum';
+import { ReviewFilterDto } from './dto/review-filter.dto';
 
 @ApiTags('reviews')
 @Controller('reviews')
@@ -99,16 +100,21 @@ export class ReviewController {
   @Get('hotel/:hotelId')
   async getReviewByHotelId(
     @Param('hotelId') hotelId: number,
-    @Query() filter: GetReviewDto,
+    @Query() filter: ReviewFilterDto,
   ): Promise<{ message: string; data: any }> {
     return {
       message: this.localesService.translate(REVIEW_MESSAGE.GET_REVIEW_SUCCESS),
       data: await this.reviewService.findByHotelId({
         hotelId: hotelId,
-        sortByCreatedAt: filter.sortByCreatedAt === 'DESC' ? 'DESC' : 'ASC',
-        hasImages: filter.hasImages === 'true' ? true : false,
+        sortByCreatedAt: filter.sortByCreatedAt,
+        hasImages:
+          filter.hasImages === undefined || filter.hasImages === 'all'
+            ? HasImages.All
+            : (filter.hasImages as HasImages),
         startDate: filter.startDate,
         endDate: filter.endDate,
+        page: filter.page,
+        limit: filter.limit,
       }),
     };
   }
