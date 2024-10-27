@@ -21,6 +21,7 @@ import { Hotel } from 'src/modules/hotels/entities/hotel.entity';
 import { Room } from 'src/modules/room/entities/room.entity';
 import { TypeRoom } from 'src/modules/type_room/entities/type_room.entity';
 import { AuthProvider } from 'src/modules/auth_provider/entities/auth_provider.entity';
+import { ReviewReply } from 'src/modules/review_reply/entities/review_reply.entity';
 
 @Entity()
 export class User {
@@ -78,6 +79,9 @@ export class User {
 
   @OneToMany(() => Review, (review) => review.userId)
   reviews: Review[];
+
+  @OneToMany(() => ReviewReply, (reply) => reply.user)
+  reviewReplies: ReviewReply[];
 
   @OneToMany(() => Favorite, (favorite) => favorite.user)
   favorites: Favorite[];

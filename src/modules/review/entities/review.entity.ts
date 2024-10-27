@@ -1,4 +1,5 @@
 import { Hotel } from 'src/modules/hotels/entities/hotel.entity';
+import { ReviewReply } from 'src/modules/review_reply/entities/review_reply.entity';
 import { User } from 'src/modules/users/entities/user.entity';
 import {
   Entity,
@@ -9,6 +10,7 @@ import {
   CreateDateColumn,
   UpdateDateColumn,
   Check,
+  OneToMany,
 } from 'typeorm';
 
 @Entity('review')
@@ -36,6 +38,9 @@ export class Review {
     nullable: true,
   })
   rating: number;
+
+  @OneToMany(() => ReviewReply, (reply) => reply.review)
+  replies: ReviewReply[];
 
   @CreateDateColumn({ name: 'created_at' })
   createdAt: Date;

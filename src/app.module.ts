@@ -28,6 +28,7 @@ import { AuthProviderModule } from './modules/auth_provider/authProvider.module'
 import { CategoryModule } from './modules/category/category.module';
 import { UtilityModule } from './modules/utilities/utility.module';
 import { TypeUtilityModule } from './modules/type_utility/type_utility.module';
+import { ReviewReplyModule } from './modules/review_reply/review_reply.module';
 
 @Module({
   imports: [
@@ -78,6 +79,7 @@ import { TypeUtilityModule } from './modules/type_utility/type_utility.module';
     CategoryModule,
     TypeUtilityModule,
     UtilityModule,
+    ReviewReplyModule,
   ],
   controllers: [AppController],
   providers: [AppService],

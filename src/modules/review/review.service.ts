@@ -17,6 +17,7 @@ import {
   ReviewStatistics,
 } from 'src/interfaces/review.interface';
 import { HasImages } from 'src/enums/review.enum';
+import { LocalesService } from '../locales/locales.service';
 
 @Injectable()
 export class ReviewService {
@@ -29,6 +30,8 @@ export class ReviewService {
     private readonly userService: UserService,
 
     private readonly hotelService: HotelService,
+
+    private localesService: LocalesService,
   ) {}
 
   async create(
@@ -74,9 +77,22 @@ export class ReviewService {
   }
 
   async findById(id: number): Promise<Review> {
-    const review = await this.reviewRepository.findOne({ where: { id } });
+    const review = await this.reviewRepository.findOne({
+      where: { id },
+      relations: ['hotelId', 'hotelId.partner'],
+      select: {
+        hotelId: {
+          id: true,
+          partner: {
+            id: true,
+          },
+        },
+      },
+    });
     if (!review) {
-      ErrorHelper.NotFoundException(REVIEW_MESSAGE.REVIEW_NOT_FOUND);
+      ErrorHelper.NotFoundException(
+        this.localesService.translate(REVIEW_MESSAGE.REVIEW_NOT_FOUND),
+      );
     }
     return review;
   }
@@ -116,12 +132,22 @@ export class ReviewService {
 
     const reviews = await this.reviewRepository.find({
       where: whereConditions,
-      relations: ['userId'],
+      relations: ['userId', 'replies', 'replies.user'],
       select: {
         userId: {
           id: true,
           fullname: true,
           avatar: true,
+        },
+        replies: {
+          id: true,
+          content: true,
+          createdAt: true,
+          user: {
+            id: true,
+            fullname: true,
+            avatar: true,
+          },
         },
       },
       order: {
@@ -204,7 +230,9 @@ export class ReviewService {
     const review = await this.findById(id);
 
     if (!review) {
-      ErrorHelper.NotFoundException(REVIEW_MESSAGE.REVIEW_NOT_FOUND);
+      ErrorHelper.NotFoundException(
+        this.localesService.translate(REVIEW_MESSAGE.REVIEW_NOT_FOUND),
+      );
     }
 
     let urls: string[] = review.images;
@@ -226,7 +254,9 @@ export class ReviewService {
     );
 
     if (!user) {
-      ErrorHelper.NotFoundException(USER_MESSAGE.USER_NOT_FOUND);
+      ErrorHelper.NotFoundException(
+        this.localesService.translate(USER_MESSAGE.USER_NOT_FOUND),
+      );
     }
 
     const hotel = await this.hotelService.findOne(
@@ -248,7 +278,9 @@ export class ReviewService {
     const review = await this.findById(id);
 
     if (!review) {
-      ErrorHelper.NotFoundException(REVIEW_MESSAGE.REVIEW_NOT_FOUND);
+      ErrorHelper.NotFoundException(
+        this.localesService.translate(REVIEW_MESSAGE.REVIEW_NOT_FOUND),
+      );
     }
 
     await this.reviewRepository.delete(id);
