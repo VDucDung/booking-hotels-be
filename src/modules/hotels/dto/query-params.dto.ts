@@ -30,4 +30,22 @@ export class QueryParamsDto {
   @IsOptional()
   @IsString()
   sortBy?: string;
+
+  @ApiPropertyOptional({
+    description: 'Ngày nhận phòng',
+  })
+  @IsOptional()
+  startDate?: Date;
+
+  @ApiPropertyOptional({
+    description: 'Ngày trả phòng',
+  })
+  @IsOptional()
+  endDate?: Date;
+
+  @ApiPropertyOptional({
+    description: 'Số lượng phòng',
+  })
+  @IsOptional()
+  totalRoom?: number;
 }

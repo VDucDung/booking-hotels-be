@@ -179,11 +179,16 @@ export class HotelService {
     page: number = 1,
     keyword?: string,
     sortBy?: string,
+    startDate?: Date,
+    endDate?: Date,
+    totalRoom?: number,
   ) {
     const query = this.hotelRepository
       .createQueryBuilder('hotel')
       .leftJoin('hotel.reviews', 'reviews')
       .leftJoinAndSelect('hotel.favorites', 'favorites')
+      .leftJoinAndSelect('hotel.typeRooms', 'typeRooms')
+      .leftJoinAndSelect('typeRooms.rooms', 'rooms')
       .select([
         'hotel.id',
         'hotel.hotelName',
@@ -198,6 +203,9 @@ export class HotelService {
         'hotel.partner',
         'favorites.id',
         'favorites.user',
+        'typeRooms',
+        'rooms.id',
+        'rooms.bookingDate',
       ])
       .addSelect(
         'ROUND(COALESCE(AVG(reviews.rating), 0), 1)',
@@ -205,12 +213,27 @@ export class HotelService {
       )
       .addSelect('COUNT(DISTINCT reviews.id)', 'hotel_total_reviews')
       .groupBy('hotel.id')
-      .addGroupBy('favorites.id');
+      .addGroupBy('favorites.id')
+      .addGroupBy('typeRooms.id')
+      .addGroupBy('rooms.id');
 
     if (keyword) {
       query.andWhere(
         '(hotel.hotelName ILIKE :keyword OR hotel.address ILIKE :keyword OR hotel.description ILIKE :keyword)',
         { keyword: `%${keyword}%` },
+      );
+    }
+
+    if (startDate && endDate) {
+      query.andWhere(
+        'NOT EXISTS (' +
+          'SELECT 1 FROM room r ' +
+          'INNER JOIN type_room tr ON r."type_room_id" = tr.id ' +
+          'WHERE tr."hotel_id" = hotel.id ' +
+          'AND EXISTS (SELECT 1 FROM unnest(ARRAY[r."bookingDate"]) bd ' +
+          'WHERE bd BETWEEN :startDate AND :endDate)' +
+          ')',
+        { startDate, endDate },
       );
     }
 
@@ -240,10 +263,20 @@ export class HotelService {
       .take(limit)
       .getRawAndEntities();
 
-    const total = result.entities.length;
-    const hotelsWithRatings = result.entities.map(
-      (hotel: any, index: number) => {
+    await query.getCount();
+    const hotelsWithRatings = result.entities
+      .map((hotel: any, index: number) => {
         const rawHotel = result.raw[index];
+
+        const hasEnoughRooms =
+          !totalRoom ||
+          (hotel.typeRooms &&
+            hotel?.typeRooms[index]?.rooms?.length >= totalRoom);
+
+        if (!hasEnoughRooms) {
+          return null;
+        }
+
         return {
           ...hotel,
           avgRating:
@@ -255,17 +288,26 @@ export class HotelService {
               ? parseInt(rawHotel.hotel_total_reviews)
               : 0,
           favorites: hotel.favorites || [],
+          typeRooms: hotel.typeRooms.map((typeRoom) => ({
+            ...typeRoom,
+            rooms: typeRoom.rooms.filter((room) => {
+              if (!startDate || !endDate) return true;
+              return !room.bookingDate?.some(
+                (date) => date >= startDate && date <= endDate,
+              );
+            }),
+          })),
         };
-      },
-    );
+      })
+      .filter((hotel) => hotel !== null);
 
     return {
       data: hotelsWithRatings,
       detailResult: {
-        total,
+        total: hotelsWithRatings.length,
         page,
         limit,
-        totalPages: Math.ceil(total / limit),
+        totalPages: Math.ceil(hotelsWithRatings.length / limit),
       },
     };
   }

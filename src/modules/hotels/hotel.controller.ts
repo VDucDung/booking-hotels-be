@@ -88,7 +88,8 @@ export class HotelController {
     message: string;
     data: { hotels: Hotel[]; detailResult: any };
   }> {
-    const { limit, page, keyword, sortBy } = queryParams;
+    const { limit, page, keyword, sortBy, startDate, endDate, totalRoom } =
+      queryParams;
     const sanitizedLimit = limit && !isNaN(limit) && limit > 0 ? limit : 10;
     const sanitizedPage = page && !isNaN(page) && page > 0 ? page : 1;
     const { data, detailResult } = await this.hotelService.searchHotels(
@@ -96,6 +97,9 @@ export class HotelController {
       sanitizedPage,
       keyword,
       sortBy,
+      startDate,
+      endDate,
+      totalRoom,
     );
     return {
       message: this.localesService.translate(HOTEL_MESSAGE.GET_HOTELS_SUCCESS),

@@ -43,6 +43,7 @@ export class Room {
   price: number;
 
   @ManyToOne(() => TypeRoom, (typeRoom) => typeRoom.rooms)
+  @JoinColumn({ name: 'type_room_id' })
   typeRoomId: TypeRoom;
 
   @ManyToOne(() => User, { nullable: false, onDelete: 'CASCADE' })
@@ -51,6 +52,9 @@ export class Room {
 
   @OneToMany(() => Ticket, (ticket) => ticket.roomId)
   tickets: Ticket[];
+
+  @Column({ nullable: true })
+  bookingDate: Date;
 
   @CreateDateColumn({ name: 'created_at' })
   createdAt: Date;
