@@ -182,6 +182,7 @@ export class HotelService {
     startDate?: Date,
     endDate?: Date,
     totalRoom?: number,
+    capacity?: number,
   ) {
     const query = this.hotelRepository
       .createQueryBuilder('hotel')
@@ -206,6 +207,7 @@ export class HotelService {
         'typeRooms',
         'rooms.id',
         'rooms.bookingDate',
+        'rooms.capacity',
       ])
       .addSelect(
         'ROUND(COALESCE(AVG(reviews.rating), 0), 1)',
@@ -234,6 +236,18 @@ export class HotelService {
           'WHERE bd BETWEEN :startDate AND :endDate)' +
           ')',
         { startDate, endDate },
+      );
+    }
+
+    if (capacity) {
+      query.andWhere(
+        'EXISTS (' +
+          'SELECT 1 FROM room r ' +
+          'INNER JOIN type_room tr ON r."type_room_id" = tr.id ' +
+          'WHERE tr."hotel_id" = hotel.id ' +
+          'AND r.capacity >= :capacity' +
+          ')',
+        { capacity },
       );
     }
 
@@ -273,7 +287,13 @@ export class HotelService {
           (hotel.typeRooms &&
             hotel?.typeRooms[index]?.rooms?.length >= totalRoom);
 
-        if (!hasEnoughRooms) {
+        const hasRequiredCapacity =
+          !capacity ||
+          hotel.typeRooms.some((typeRoom) =>
+            typeRoom.rooms.some((room) => room.capacity >= capacity),
+          );
+
+        if (!hasEnoughRooms || !hasRequiredCapacity) {
           return null;
         }
 
@@ -291,10 +311,14 @@ export class HotelService {
           typeRooms: hotel.typeRooms.map((typeRoom) => ({
             ...typeRoom,
             rooms: typeRoom.rooms.filter((room) => {
-              if (!startDate || !endDate) return true;
-              return !room.bookingDate?.some(
-                (date) => date >= startDate && date <= endDate,
-              );
+              const dateCondition =
+                !startDate ||
+                !endDate ||
+                !room.bookingDate?.some(
+                  (date) => date >= startDate && date <= endDate,
+                );
+              const capacityCondition = !capacity || room.capacity >= capacity;
+              return dateCondition && capacityCondition;
             }),
           })),
         };

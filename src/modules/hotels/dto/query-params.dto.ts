@@ -48,4 +48,10 @@ export class QueryParamsDto {
   })
   @IsOptional()
   totalRoom?: number;
+
+  @ApiPropertyOptional({
+    description: 'Sức chứa',
+  })
+  @IsOptional()
+  capacity?: number;
 }
