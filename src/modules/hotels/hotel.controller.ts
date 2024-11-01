@@ -97,6 +97,9 @@ export class HotelController {
       endDate,
       totalRoom,
       capacity,
+      startPrice,
+      endPrice,
+      rating,
     } = queryParams;
     const sanitizedLimit = limit && !isNaN(limit) && limit > 0 ? limit : 10;
     const sanitizedPage = page && !isNaN(page) && page > 0 ? page : 1;
@@ -109,6 +112,9 @@ export class HotelController {
       endDate,
       totalRoom,
       capacity,
+      startPrice,
+      endPrice,
+      rating,
     );
     return {
       message: this.localesService.translate(HOTEL_MESSAGE.GET_HOTELS_SUCCESS),

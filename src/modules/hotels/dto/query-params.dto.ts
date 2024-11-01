@@ -54,4 +54,22 @@ export class QueryParamsDto {
   })
   @IsOptional()
   capacity?: number;
+
+  @ApiPropertyOptional({
+    description: 'Giá phòng từ',
+  })
+  @IsOptional()
+  startPrice?: number;
+
+  @ApiPropertyOptional({
+    description: 'Giá phòng đến',
+  })
+  @IsOptional()
+  endPrice?: number;
+
+  @ApiPropertyOptional({
+    description: 'Đánh giá',
+  })
+  @IsOptional()
+  rating?: number;
 }

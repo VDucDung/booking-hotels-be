@@ -183,6 +183,9 @@ export class HotelService {
     endDate?: Date,
     totalRoom?: number,
     capacity?: number,
+    startPrice?: number,
+    endPrice?: number,
+    rating?: number,
   ) {
     const query = this.hotelRepository
       .createQueryBuilder('hotel')
@@ -224,6 +227,24 @@ export class HotelService {
         '(hotel.hotelName ILIKE :keyword OR hotel.address ILIKE :keyword OR hotel.description ILIKE :keyword)',
         { keyword: `%${keyword}%` },
       );
+    }
+
+    if (startPrice !== undefined && endPrice !== undefined) {
+      query.andWhere(
+        'EXISTS (' +
+          'SELECT 1 FROM type_room tr ' +
+          'INNER JOIN room r ON r."type_room_id" = tr.id ' +
+          'WHERE tr."hotel_id" = hotel.id ' +
+          'AND r.price BETWEEN :startPrice AND :endPrice' +
+          ')',
+        { startPrice, endPrice },
+      );
+    }
+
+    if (rating !== undefined) {
+      query.having('ROUND(COALESCE(AVG(reviews.rating), 0), 1) >= :rating', {
+        rating,
+      });
     }
 
     if (startDate && endDate) {
@@ -318,7 +339,11 @@ export class HotelService {
                   (date) => date >= startDate && date <= endDate,
                 );
               const capacityCondition = !capacity || room.capacity >= capacity;
-              return dateCondition && capacityCondition;
+              const priceCondition =
+                !startPrice ||
+                !endPrice ||
+                (room.price >= startPrice && room.price <= endPrice);
+              return dateCondition && capacityCondition && priceCondition;
             }),
           })),
         };
