@@ -72,4 +72,10 @@ export class QueryParamsDto {
   })
   @IsOptional()
   rating?: number;
+
+  @ApiPropertyOptional({
+    description: 'Địa điểm',
+  })
+  @IsOptional()
+  address?: string;
 }

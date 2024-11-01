@@ -186,6 +186,7 @@ export class HotelService {
     startPrice?: number,
     endPrice?: number,
     rating?: number,
+    address?: string,
   ) {
     const query = this.hotelRepository
       .createQueryBuilder('hotel')
@@ -244,6 +245,12 @@ export class HotelService {
     if (rating !== undefined) {
       query.having('ROUND(COALESCE(AVG(reviews.rating), 0), 1) >= :rating', {
         rating,
+      });
+    }
+
+    if (address) {
+      query.andWhere('hotel.address ILIKE :address', {
+        address: `%${address}%`,
       });
     }
 
