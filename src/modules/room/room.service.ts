@@ -93,4 +93,10 @@ export class RoomService {
     await this.roomRepository.save(room);
     return true;
   }
+
+  async updateBookingDate(roomId: number, bookingDate: Date): Promise<Room> {
+    const room = await this.findOne(roomId);
+    room.bookingDate = bookingDate;
+    return await this.roomRepository.save(room);
+  }
 }

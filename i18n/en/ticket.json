@@ -1,6 +1,7 @@
 {
   "CREATE_TICKET_SUCCESS": "create ticket successfully",
   "UPDATE_TICKET_SUCCESS": "update ticket successfully",
+  "UPDATE_TICKET_FAIL": "update ticket fail",
   "DELETE_TICKET_SUCCESS": "delete ticket successfully",
   "TICKET_NOT_FOUND": "the ticket not found",
   "TICKET_EXISTED": "the ticket already exists",

@@ -2,20 +2,14 @@ import { IsEnum, IsNotEmpty, IsDateString } from 'class-validator';
 
 export class CreateTicketDto {
   @IsNotEmpty()
-  userId: string;
-
-  @IsNotEmpty()
-  roomId: string;
+  roomId: number;
 
   @IsDateString()
-  checkInDate: Date;
+  checkInDate: string;
 
   @IsDateString()
-  checkOutDate: Date;
+  checkOutDate: string;
 
   @IsEnum(['Cash', 'Bank Transfer', 'Gift Card'])
   paymentMethods: string;
-
-  @IsEnum(['pending', 'done', 'reject'])
-  status: string;
 }

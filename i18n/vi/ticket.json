@@ -1,6 +1,7 @@
 {
   "CREATE_TICKET_SUCCESS": "tạo vé thành công",
   "UPDATE_TICKET_SUCCESS": "cập nhật vé thành công",
+  "UPDATE_TICKET_FAIL": "cập nhật vé thất bại",
   "DELETE_TICKET_SUCCESS": "xóa vé thành công",
   "TICKET_NOT_FOUND": "vé không tồn tại",
   "TICKET_EXISTED": "vé này đã tồn tại",

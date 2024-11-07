@@ -6,6 +6,9 @@ import { Ticket } from './entities/ticket.entity';
 import { LocalesModule } from '../locales/locales.module';
 import { RoomModule } from '../room/room.module';
 import { UserModule } from '../users/user.module';
+import { JwtModule } from '@nestjs/jwt';
+import { JWT } from 'src/constants';
+import { PermissionsModule } from '../permissions/permissions.module';
 
 @Module({
   imports: [
@@ -13,6 +16,11 @@ import { UserModule } from '../users/user.module';
     LocalesModule,
     RoomModule,
     UserModule,
+    PermissionsModule,
+    JwtModule.register({
+      secret: JWT.secretAccess,
+      signOptions: { expiresIn: JWT.expiresAccessToken },
+    }),
   ],
   controllers: [TicketController],
   providers: [TicketService],

@@ -21,7 +21,7 @@ export class Ticket {
 
   @ManyToOne(() => Room, (room) => room.tickets)
   @JoinColumn({ name: 'room_id' })
-  roomId: string;
+  room: Room;
 
   @Column({ nullable: false })
   checkInDate: Date;
@@ -39,8 +39,8 @@ export class Ticket {
 
   @Column({
     type: 'enum',
-    enum: ['pending ', 'done', 'reject'],
-    default: null,
+    enum: ['pending', 'done', 'reject'],
+    default: 'pending',
     nullable: true,
   })
   status: string;

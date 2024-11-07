@@ -50,7 +50,7 @@ export class Room {
   @JoinColumn({ name: 'partner_id' })
   partnerId: number;
 
-  @OneToMany(() => Ticket, (ticket) => ticket.roomId)
+  @OneToMany(() => Ticket, (ticket) => ticket.room)
   tickets: Ticket[];
 
   @Column({ nullable: true })

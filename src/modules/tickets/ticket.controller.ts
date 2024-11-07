@@ -4,18 +4,22 @@ import {
   Body,
   Get,
   Param,
-  Patch,
   Delete,
+  UseGuards,
+  Put,
 } from '@nestjs/common';
 
-import { ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { CreateTicketDto } from './dto/create-ticket.dto';
 import { UpdateTicketDto } from './dto/update-ticket.dto';
 import { TicketService } from './ticket.service';
 import { LocalesService } from '../locales/locales.service';
 import { TICKET_MESSAGE } from 'src/messages';
 import { Ticket } from './entities/ticket.entity';
-import { ErrorHelper } from 'src/common/helpers';
+import { AuthGuard } from 'src/common/guards/auth.guard';
+import { UserDecorator } from 'src/common/decorators/user.decorator';
+// import { AuthDecorator } from 'src/common/decorators/auth.decorator';
+// import { ERole } from 'src/enums/roles.enum';
 
 @ApiTags('tickets')
 @Controller('tickets')
@@ -26,7 +30,12 @@ export class TicketController {
   ) {}
 
   @Post()
-  async create(@Body() createTicketDto: CreateTicketDto): Promise<{
+  @ApiBearerAuth()
+  @UseGuards(AuthGuard)
+  async create(
+    @UserDecorator() user,
+    @Body() createTicketDto: CreateTicketDto,
+  ): Promise<{
     message: string;
     data: Ticket;
   }> {
@@ -34,12 +43,14 @@ export class TicketController {
       message: this.localesService.translate(
         TICKET_MESSAGE.CREATE_TICKET_SUCCESS,
       ),
-      data: await this.ticketService.create(createTicketDto),
+      data: await this.ticketService.create(user.id, createTicketDto),
     };
   }
 
   @Get()
-  async findAll(): Promise<{
+  @ApiBearerAuth()
+  @UseGuards(AuthGuard)
+  async findTicketByUserId(@UserDecorator() user): Promise<{
     message: string;
     data: Ticket[];
   }> {
@@ -47,11 +58,13 @@ export class TicketController {
       message: this.localesService.translate(
         TICKET_MESSAGE.GET_LIST_TICKET_SUCCESS,
       ),
-      data: await this.ticketService.findAll(),
+      data: await this.ticketService.findTicketByUserId(user.id),
     };
   }
 
   @Get(':id')
+  @ApiBearerAuth()
+  @UseGuards(AuthGuard)
   async findOne(@Param('id') id: string): Promise<{
     message: string;
     data: Ticket;
@@ -62,9 +75,13 @@ export class TicketController {
     };
   }
 
-  @Patch(':id')
+  @Put(':id')
+  @ApiBearerAuth()
+  @UseGuards(AuthGuard)
+  // @AuthDecorator([ERole.ADMIN, ERole.PARTNER])
   async update(
     @Param('id') id: string,
+    @UserDecorator() user,
     @Body() updateTicketDto: UpdateTicketDto,
   ): Promise<{
     message: string;
@@ -74,18 +91,21 @@ export class TicketController {
       message: this.localesService.translate(
         TICKET_MESSAGE.UPDATE_TICKET_SUCCESS,
       ),
-      data: await this.ticketService.update(id, updateTicketDto),
+      data: await this.ticketService.update(id, user, updateTicketDto),
     };
   }
 
   @Delete(':id')
-  async remove(@Param('id') id: string): Promise<{
+  @ApiBearerAuth()
+  @UseGuards(AuthGuard)
+  async remove(
+    @Param('id') id: string,
+    @UserDecorator() user,
+  ): Promise<{
     message: string;
   }> {
-    const deletedTicket = await this.ticketService.remove(id);
-    if (!deletedTicket) {
-      ErrorHelper.BadRequestException(TICKET_MESSAGE.DELETE_TICKET_FAIL);
-    }
+    await this.ticketService.remove(id, user);
+
     return {
       message: this.localesService.translate(
         TICKET_MESSAGE.DELETE_TICKET_SUCCESS,
