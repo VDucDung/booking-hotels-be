@@ -77,7 +77,12 @@ export class TicketService {
 
     const ticket = await this.ticketRepository.find({
       where: { user: { id: user.id } },
-      relations: ['room', 'room.typeRoomId', 'room.typeRoomId.hotel'],
+      relations: [
+        'room',
+        'room.typeRoomId',
+        'room.typeRoomId.hotel',
+        'room.typeRoomId.hotel.reviews',
+      ],
       select: {
         room: {
           id: true,
@@ -98,8 +103,6 @@ export class TicketService {
               favorites: true,
               images: true,
               reviews: true,
-              totalReviews: true,
-              avgRating: true,
             },
           },
         },
