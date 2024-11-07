@@ -74,10 +74,38 @@ export class TicketService {
 
   async findTicketByUserId(userId: number): Promise<Ticket[]> {
     const user = await this.userService.getUserById(userId);
-    const ticket = this.ticketRepository.find({
+
+    const ticket = await this.ticketRepository.find({
       where: { user: { id: user.id } },
-      relations: ['room'],
+      relations: ['room', 'room.typeRoomId', 'room.typeRoomId.hotel'],
+      select: {
+        room: {
+          id: true,
+          bookingDate: true,
+          capacity: true,
+          description: true,
+          images: true,
+          price: true,
+          options: true,
+          roomName: true,
+          typeRoomId: {
+            id: true,
+            hotel: {
+              id: true,
+              address: true,
+              hotelName: true,
+              description: true,
+              favorites: true,
+              images: true,
+              reviews: true,
+              totalReviews: true,
+              avgRating: true,
+            },
+          },
+        },
+      },
     });
+
     if (!ticket) {
       ErrorHelper.NotFoundException(
         this.localesService.translate(TICKET_MESSAGE.TICKET_NOT_FOUND),
