@@ -60,7 +60,7 @@ export class UserService {
   }
 
   async createUser(createUserDto: CreateUserDto): Promise<User> {
-    const { email, fullname, password } = createUserDto;
+    const { email, fullname, password, role } = createUserDto;
     const normalizedEmail = emailFormatter(email);
 
     if (!email || !fullname || !password) {
@@ -98,20 +98,20 @@ export class UserService {
     if (!createUserDto.role || createUserDto.role.name === ERole.USER) {
       createUserDto['username'] = newUsername;
     }
-    let role = await this.roleRepository.findOne({
-      where: { name: ERole.USER },
+    let roleUser = await this.roleRepository.findOne({
+      where: { name: role.name },
     });
 
-    if (!role) {
-      role = await this.roleRepository.save({
-        name: ERole.USER,
+    if (!roleUser) {
+      roleUser = await this.roleRepository.save({
+        name: role.name,
       });
     }
 
     createUserDto['normalizedEmail'] = normalizedEmail;
     const user = this.userRepository.create({
       ...createUserDto,
-      role: role,
+      role: roleUser,
     });
 
     await this.userRepository.save(user);

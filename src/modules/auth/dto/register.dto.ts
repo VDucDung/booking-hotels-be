@@ -11,7 +11,6 @@ import { i18nValidationMessage } from 'nestjs-i18n';
 import { PASSWORD_REGEX, PHONE_VN_REGEX } from 'src/constants';
 import { ERole } from 'src/enums/roles.enum';
 import { COMMON_MESSAGE } from 'src/messages';
-import { Role } from 'src/modules/roles/entities/role.entity';
 
 export class RegisterDto {
   @MaxLength(30, {
@@ -78,12 +77,11 @@ export class RegisterDto {
     message: i18nValidationMessage(COMMON_MESSAGE.INVALID),
   })
   @ApiProperty({
-    enum: ERole,
-    name: 'Role',
+    name: 'role',
     type: String,
     required: false,
   })
-  role?: Role;
+  role?: string;
 
   @IsOptional()
   @ApiProperty({

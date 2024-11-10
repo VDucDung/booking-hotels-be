@@ -30,6 +30,7 @@ import { ILogin } from 'src/interfaces';
 import { AuthProviderService } from '../auth_provider/authProvider.service';
 import { USER_FORGOT_STATUS_ENUM } from 'src/enums/user-forgot-status.enum';
 import { generateOTP } from 'src/common/utils/generateOTP.util';
+import { RoleService } from '../roles/role.service';
 
 @Injectable()
 export class AuthService {
@@ -42,6 +43,7 @@ export class AuthService {
     private readonly emailService: EmailService,
     private localesService: LocalesService,
     private authProviderService: AuthProviderService,
+    private roleService: RoleService,
   ) {}
 
   async login(loginDto: LoginDto): Promise<ILogin> {
@@ -142,13 +144,22 @@ export class AuthService {
   }
 
   async register(registerDto: RegisterDto): Promise<void> {
-    const { fullname, email, password } = registerDto;
+    const { fullname, email, password, role } = registerDto;
     const expires = new Date(Date.now() + EXPIRES_TOKEN_EMAIL_VERIFY);
+    const roleUser = await this.roleService.findOne({
+      where: { name: 'USER' },
+    });
+    if (role) {
+      await this.roleService.findOne({
+        where: { name: role },
+      });
+    }
 
     const registerData = {
       fullname,
       email,
       password,
+      role: roleUser,
       verifyExpireAt: expires,
     };
 

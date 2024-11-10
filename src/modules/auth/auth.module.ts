@@ -11,6 +11,7 @@ import { JWT } from 'src/constants';
 import { PermissionsModule } from '../permissions/permissions.module';
 import { LocalesModule } from '../locales/locales.module';
 import { AuthProviderModule } from '../auth_provider/authProvider.module';
+import { RoleModule } from '../roles/role.module';
 
 @Module({
   imports: [
@@ -25,6 +26,7 @@ import { AuthProviderModule } from '../auth_provider/authProvider.module';
     TypeOrmModule.forFeature([User]),
     EmailModule,
     LocalesModule,
+    RoleModule,
   ],
   controllers: [AuthController],
   providers: [AuthService],
