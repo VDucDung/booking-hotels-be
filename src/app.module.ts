@@ -29,6 +29,7 @@ import { CategoryModule } from './modules/category/category.module';
 import { UtilityModule } from './modules/utilities/utility.module';
 import { TypeUtilityModule } from './modules/type_utility/type_utility.module';
 import { ReviewReplyModule } from './modules/review_reply/review_reply.module';
+import { StripeModule } from './modules/stripe/stripe.module';
 
 @Module({
   imports: [
@@ -80,6 +81,7 @@ import { ReviewReplyModule } from './modules/review_reply/review_reply.module';
     TypeUtilityModule,
     UtilityModule,
     ReviewReplyModule,
+    StripeModule,
   ],
   controllers: [AppController],
   providers: [AppService],
