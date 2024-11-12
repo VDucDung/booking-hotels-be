@@ -12,14 +12,17 @@ import { join } from 'path';
 import { UserService } from './modules/users/user.service';
 async function bootstrap() {
   dotenv.config();
-  // const app = await NestFactory.create(AppModule);
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
   const configService = app.get(ConfigService);
   const port = configService.get('PORT');
   const userService = app.get(UserService);
 
   app.use(morgan('dev'));
-  app.enableCors();
+  app.enableCors({
+    origin: ['https://booking-hotels-fe.vercel.app', 'http://localhost:3000'],
+    methods: 'GET,POST,PUT,DELETE,OPTIONS',
+    allowedHeaders: 'Content-Type,Authorization',
+  });
 
   app.useGlobalFilters(new HttpExceptionFilter());
   app.useGlobalPipes(new ValidationPipe());
