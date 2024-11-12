@@ -12,27 +12,37 @@ export class StripeService {
     });
   }
 
-  async createPaymentIntent(
-    amount: number,
-    currency: string,
-  ): Promise<Stripe.PaymentIntent> {
+  async createPaymentIntent({
+    amount,
+    currency,
+  }: {
+    amount: number;
+    currency: string;
+  }): Promise<Stripe.PaymentIntent> {
     return await this.stripe.paymentIntents.create({
       amount,
       currency,
     });
   }
 
-  async createCheckoutSession(
-    amount: number,
-  ): Promise<Stripe.Checkout.Session> {
-    if (!amount || amount <= 0) {
-      ErrorHelper.BadRequestException('Số tiền không hợp lệ.');
+  async createCheckoutSession({
+    userId,
+    amount,
+  }: {
+    userId: number;
+    amount: number;
+  }): Promise<Stripe.Checkout.Session> {
+    if (!amount || amount < 12000) {
+      ErrorHelper.BadRequestException(
+        'Số tiền không hợp lệ. Số tiền tối thiểu là ₫12,000.',
+      );
     }
 
     try {
       const session = await this.stripe.checkout.sessions.create({
         payment_method_types: ['card'],
         mode: 'payment',
+        client_reference_id: `${userId}`,
         line_items: [
           {
             price_data: {
@@ -51,7 +61,10 @@ export class StripeService {
 
       return session;
     } catch (error) {
-      ErrorHelper.BadRequestException(error.message);
+      console.error('Stripe Error:', error.message);
+      ErrorHelper.InternalServerErrorException(
+        'Không thể tạo phiên thanh toán. Vui lòng thử lại.',
+      );
     }
   }
 }

@@ -25,6 +25,7 @@ import { PermissionDecorator } from 'src/common/decorators/permission.decorator'
 import { EUserPermission } from 'src/enums/roles.enum';
 import { AuthGuard } from 'src/common/guards/auth.guard';
 import { UserDecorator } from 'src/common/decorators/user.decorator';
+import { User } from '../users/entities/user.entity';
 
 @ApiTags('TypeRoom')
 @Controller('type-room')
@@ -41,7 +42,7 @@ export class TypeRoomController {
   @PermissionDecorator(EUserPermission.CREATE_TYPE_ROOM)
   async create(
     @Body() createTypeRoomDto: CreateTypeRoomDto,
-    @UserDecorator() user: any,
+    @UserDecorator() user: User,
   ) {
     return {
       message: this.localesService.translate(

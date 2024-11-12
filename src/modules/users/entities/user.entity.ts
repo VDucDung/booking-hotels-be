@@ -22,6 +22,7 @@ import { Room } from 'src/modules/room/entities/room.entity';
 import { TypeRoom } from 'src/modules/type_room/entities/type_room.entity';
 import { AuthProvider } from 'src/modules/auth_provider/entities/auth_provider.entity';
 import { ReviewReply } from 'src/modules/review_reply/entities/review_reply.entity';
+import { Transaction } from 'src/transactions/entities/transaction.entity';
 
 @Entity()
 export class User {
@@ -99,6 +100,12 @@ export class User {
     cascade: true,
   })
   authProviders: AuthProvider[];
+
+  @Column({ default: 0 })
+  balance: number;
+
+  @OneToMany(() => Transaction, (transaction) => transaction.user)
+  transactions: Transaction[];
 
   @CreateDateColumn({ name: 'created_at' })
   createdAt: Date;

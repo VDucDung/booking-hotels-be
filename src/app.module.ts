@@ -30,6 +30,8 @@ import { UtilityModule } from './modules/utilities/utility.module';
 import { TypeUtilityModule } from './modules/type_utility/type_utility.module';
 import { ReviewReplyModule } from './modules/review_reply/review_reply.module';
 import { StripeModule } from './modules/stripe/stripe.module';
+import { TransactionsModule } from './transactions/transactions.module';
+import { WalletsModule } from './wallets/wallets.module';
 
 @Module({
   imports: [
@@ -82,6 +84,8 @@ import { StripeModule } from './modules/stripe/stripe.module';
     UtilityModule,
     ReviewReplyModule,
     StripeModule,
+    TransactionsModule,
+    WalletsModule,
   ],
   controllers: [AppController],
   providers: [AppService],
