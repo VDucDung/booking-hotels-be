@@ -123,7 +123,7 @@ export class UserService {
   async updateUserById(
     userId: number,
     updateUserDto: UpdateUserDto,
-    file: File,
+    file?: File,
   ): Promise<User> {
     const user = await this.getUserById(userId);
     let url = user.avatar;

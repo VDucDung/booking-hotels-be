@@ -1,28 +1,49 @@
 import { Injectable } from '@nestjs/common';
 import { ErrorHelper } from 'src/common/helpers';
+import { TransactionType } from 'src/enums/transaction.enum';
+import { TransactionService } from 'src/transactions/transactions.service';
 import Stripe from 'stripe';
 
 @Injectable()
 export class StripeService {
   private stripe: Stripe;
 
-  constructor() {
+  constructor(private readonly transactionService: TransactionService) {
     this.stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
       apiVersion: '2024-10-28.acacia',
     });
   }
 
+  constructEvent(payload: Buffer, sig: string, secret: string): Stripe.Event {
+    try {
+      return this.stripe.webhooks.constructEvent(payload, sig, secret);
+    } catch (error) {
+      ErrorHelper.BadRequestException('Webhook signature verification failed');
+    }
+  }
+
   async createPaymentIntent({
     amount,
     currency,
+    userId,
   }: {
     amount: number;
     currency: string;
+    userId: number;
   }): Promise<Stripe.PaymentIntent> {
-    return await this.stripe.paymentIntents.create({
+    const paymentIntent = await this.stripe.paymentIntents.create({
       amount,
       currency,
     });
+
+    await this.transactionService.createTransaction({
+      userId: userId,
+      amount,
+      type: TransactionType.DEPOSIT,
+      stripePaymentIntentId: paymentIntent.id,
+    });
+
+    return paymentIntent;
   }
 
   async createCheckoutSession({
@@ -59,9 +80,15 @@ export class StripeService {
         cancel_url: `${process.env.FRONTEND_URL}/cancel`,
       });
 
+      await this.transactionService.createTransaction({
+        userId,
+        amount,
+        type: TransactionType.DEPOSIT,
+        stripeSessionId: session.id,
+      });
+
       return session;
     } catch (error) {
-      console.error('Stripe Error:', error.message);
       ErrorHelper.InternalServerErrorException(
         'Không thể tạo phiên thanh toán. Vui lòng thử lại.',
       );

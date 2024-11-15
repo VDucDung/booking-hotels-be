@@ -96,6 +96,14 @@ export class UpdateUserDto {
   avatar?: string;
 
   @IsOptional()
+  @ApiProperty({
+    name: 'balance',
+    type: Number,
+    required: false,
+  })
+  balance?: number;
+
+  @IsOptional()
   @IsDateString(
     {},
     { message: i18nValidationMessage(COMMON_MESSAGE.INVALID_DATE) },

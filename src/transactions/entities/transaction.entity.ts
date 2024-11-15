@@ -6,29 +6,17 @@ import {
   Column,
   ManyToOne,
   JoinColumn,
+  CreateDateColumn,
+  UpdateDateColumn,
 } from 'typeorm';
 
 @Entity('transactions')
 export class Transaction {
-  @PrimaryGeneratedColumn('uuid')
-  id: string;
+  @PrimaryGeneratedColumn()
+  id: number;
 
-  @Column({ type: 'uuid' })
-  userId: string;
-
-  @ManyToOne(() => User, (user) => user.transactions)
-  @JoinColumn({ name: 'userId' })
-  user: User;
-
-  @Column({ type: 'decimal', precision: 10, scale: 2 })
+  @Column()
   amount: number;
-
-  @Column({
-    type: 'enum',
-    enum: TransactionType,
-    default: TransactionType.DEPOSIT,
-  })
-  type: TransactionType;
 
   @Column({
     type: 'enum',
@@ -37,15 +25,28 @@ export class Transaction {
   })
   status: TransactionStatus;
 
-  @Column({ nullable: true })
-  description: string;
+  @Column({
+    type: 'enum',
+    enum: TransactionType,
+  })
+  type: TransactionType;
 
   @Column({ nullable: true })
-  transactionId: string;
+  stripePaymentIntentId: string;
 
-  @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
+  @Column({ nullable: true })
+  stripeSessionId: string;
+
+  @ManyToOne(() => User, (user) => user.transactions)
+  @JoinColumn({ name: 'userId' })
+  user: User;
+
+  @Column()
+  userId: number;
+
+  @CreateDateColumn()
   createdAt: Date;
 
-  @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
+  @UpdateDateColumn()
   updatedAt: Date;
 }

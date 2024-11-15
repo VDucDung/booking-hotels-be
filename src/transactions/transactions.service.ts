@@ -3,12 +3,16 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Transaction } from './entities/transaction.entity';
 import { PaginationQuery } from 'src/interfaces/transaction.interface';
+import { UserService } from 'src/modules/users/user.service';
+import { TransactionStatus, TransactionType } from 'src/enums/transaction.enum';
 
 @Injectable()
 export class TransactionService {
   constructor(
     @InjectRepository(Transaction)
     private readonly transactionsRepository: Repository<Transaction>,
+
+    private readonly userService: UserService,
   ) {}
 
   async getTransactions(userId: number, query: PaginationQuery) {
@@ -30,5 +34,78 @@ export class TransactionService {
       limit,
       totalPages: Math.ceil(total / limit),
     };
+  }
+
+  async getAllUserTransactions(
+    userId: number,
+    filters: {
+      type?: TransactionType;
+      status?: TransactionStatus;
+    },
+  ) {
+    const where: any = { userId };
+
+    if (filters.type) {
+      where.type = filters.type;
+    }
+
+    if (filters.status) {
+      where.status = filters.status;
+    }
+
+    return await this.transactionsRepository.find({
+      where,
+      order: { createdAt: 'DESC' },
+    });
+  }
+
+  async createTransaction(data: {
+    userId: number;
+    amount: number;
+    type: TransactionType;
+    stripeSessionId?: string;
+    stripePaymentIntentId?: string;
+  }) {
+    const transaction = this.transactionsRepository.create({
+      ...data,
+      status: TransactionStatus.PENDING,
+    });
+
+    return await this.transactionsRepository.save(transaction);
+  }
+
+  async updateTransactionStatus(
+    transactionId: number,
+    status: TransactionStatus,
+  ) {
+    const transaction = await this.transactionsRepository.findOne({
+      where: { id: transactionId },
+    });
+
+    if (!transaction) {
+      throw new Error('Transaction not found');
+    }
+
+    transaction.status = status;
+    return await this.transactionsRepository.save(transaction);
+  }
+
+  async handleSuccessfulPayment(session: any) {
+    const transaction = await this.transactionsRepository.findOne({
+      where: { stripeSessionId: session.id },
+    });
+
+    if (!transaction) {
+      throw new Error('Transaction not found');
+    }
+
+    transaction.status = TransactionStatus.SUCCESS;
+    await this.transactionsRepository.save(transaction);
+
+    const user = await this.userService.getUserById(transaction.userId);
+    user.balance += transaction.amount;
+    await this.userService.updateUserById(user.id, { balance: user.balance });
+
+    return transaction;
   }
 }

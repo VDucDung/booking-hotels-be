@@ -7,6 +7,7 @@ import { LocalesModule } from '../locales/locales.module';
 import { UserModule } from '../users/user.module';
 import { JwtModule } from '@nestjs/jwt';
 import { JWT } from 'src/constants';
+import { TransactionsModule } from 'src/transactions/transactions.module';
 
 @Module({
   imports: [
@@ -14,6 +15,7 @@ import { JWT } from 'src/constants';
     PermissionsModule,
     LocalesModule,
     UserModule,
+    TransactionsModule,
     JwtModule.register({
       secret: JWT.secretAccess,
       signOptions: { expiresIn: JWT.expiresAccessToken },
