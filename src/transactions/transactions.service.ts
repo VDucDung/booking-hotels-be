@@ -5,6 +5,7 @@ import { Transaction } from './entities/transaction.entity';
 import { PaginationQuery } from 'src/interfaces/transaction.interface';
 import { UserService } from 'src/modules/users/user.service';
 import { TransactionStatus, TransactionType } from 'src/enums/transaction.enum';
+import { ErrorHelper } from 'src/common/helpers';
 
 @Injectable()
 export class TransactionService {
@@ -83,7 +84,7 @@ export class TransactionService {
     });
 
     if (!transaction) {
-      throw new Error('Transaction not found');
+      ErrorHelper.NotFoundException('Transaction not found');
     }
 
     transaction.status = status;
