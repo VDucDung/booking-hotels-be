@@ -8,7 +8,6 @@ import { UserModule } from '../users/user.module';
 import { JwtModule } from '@nestjs/jwt';
 import { JWT } from 'src/constants';
 import { TransactionsModule } from 'src/transactions/transactions.module';
-import { WebhookController } from './webhook.controller';
 
 @Module({
   imports: [
@@ -22,7 +21,7 @@ import { WebhookController } from './webhook.controller';
       signOptions: { expiresIn: JWT.expiresAccessToken },
     }),
   ],
-  controllers: [StripeController, WebhookController],
+  controllers: [StripeController],
   providers: [StripeService],
 })
 export class StripeModule {}
