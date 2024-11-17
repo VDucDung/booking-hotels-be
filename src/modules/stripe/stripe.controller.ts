@@ -88,13 +88,24 @@ export class StripeController {
       case 'checkout.session.completed':
         const session = event.data.object as Stripe.Checkout.Session;
         const userId = session.client_reference_id;
+
+        const user = await this.userService.getUserById(+userId);
+
+        if (!user) {
+          ErrorHelper.NotFoundException('User not found');
+        }
+
+        const newBalance = (user.balance || 0) + session.amount_total;
+
         await this.userService.updateUserById(+userId, {
-          balance: session.amount_total,
+          balance: newBalance,
         });
+
         await this.transactionService.updateTransactionStatus(
           session.id,
           TransactionStatus.SUCCESS,
         );
+
         console.log(`Checkout Session completed: ${session.id}`);
         break;
 

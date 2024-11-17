@@ -36,9 +36,9 @@ export class StripeService {
       amount,
       currency,
     });
-    console.log(paymentIntent);
+    console.log('PaymentIntent created:', paymentIntent);
     await this.transactionService.createTransaction({
-      userId: userId,
+      userId,
       amount,
       type: TransactionType.DEPOSIT,
       stripePaymentIntentId: paymentIntent.id,
