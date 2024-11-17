@@ -89,7 +89,7 @@ export class StripeController {
         const session = event.data.object as Stripe.Checkout.Session;
         const userId = session.client_reference_id;
         await this.userService.updateUserById(+userId, {
-          balance: session.amount_total / 100,
+          balance: session.amount_total,
         });
         await this.transactionService.updateTransactionStatus(
           session.id,
