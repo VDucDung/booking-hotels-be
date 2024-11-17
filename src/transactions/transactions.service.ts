@@ -76,7 +76,7 @@ export class TransactionService {
   }
 
   async updateTransactionStatus(
-    transactionId: number,
+    transactionId: string,
     status: TransactionStatus,
   ) {
     const transaction = await this.transactionsRepository.findOne({

@@ -13,7 +13,7 @@ import {
 @Entity('transactions')
 export class Transaction {
   @PrimaryGeneratedColumn()
-  id: number;
+  id: string;
 
   @Column()
   amount: number;

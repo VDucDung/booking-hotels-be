@@ -78,9 +78,8 @@ export class StripeController {
     switch (event.type) {
       case 'payment_intent.succeeded':
         const paymentIntent = event.data.object as Stripe.PaymentIntent;
-        console.log(paymentIntent);
         await this.transactionService.updateTransactionStatus(
-          +paymentIntent.id,
+          paymentIntent.id,
           TransactionStatus.SUCCESS,
         );
         console.log(`PaymentIntent succeeded: ${paymentIntent.id}`);
@@ -89,12 +88,11 @@ export class StripeController {
       case 'checkout.session.completed':
         const session = event.data.object as Stripe.Checkout.Session;
         const userId = session.client_reference_id;
-        console.log(session);
         await this.userService.updateUserById(+userId, {
           balance: session.amount_total / 100,
         });
         await this.transactionService.updateTransactionStatus(
-          +session.id,
+          session.id,
           TransactionStatus.SUCCESS,
         );
         console.log(`Checkout Session completed: ${session.id}`);
