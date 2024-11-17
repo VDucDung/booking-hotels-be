@@ -76,11 +76,11 @@ export class TransactionService {
   }
 
   async updateTransactionStatus(
-    transactionId: string,
+    stripeSessionId: string,
     status: TransactionStatus,
   ) {
     const transaction = await this.transactionsRepository.findOne({
-      where: { id: transactionId },
+      where: { stripeSessionId },
     });
 
     if (!transaction) {

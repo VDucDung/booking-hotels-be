@@ -36,7 +36,7 @@ export class StripeService {
       amount,
       currency,
     });
-
+    console.log(paymentIntent);
     await this.transactionService.createTransaction({
       userId: userId,
       amount,
