@@ -9,6 +9,7 @@ import {
   HttpCode,
   UseGuards,
   Put,
+  Query,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -50,6 +51,15 @@ export class TypeRoomController {
       ),
       data: await this.typeRoomService.create(createTypeRoomDto, user),
     };
+  }
+
+  @Get('search')
+  async searchTypeRooms(
+    @Query('startDate') startDate: Date,
+    @Query('endDate') endDate: Date,
+    @Query('capacity') capacity: number,
+  ) {
+    return this.typeRoomService.searchTypeRooms(startDate, endDate, capacity);
   }
 
   @Get()

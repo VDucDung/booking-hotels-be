@@ -10,6 +10,7 @@ import { AUTH_MESSAGE, TYPE_ROOM_MESSAGE } from 'src/messages';
 import { User } from '../users/entities/user.entity';
 import { Hotel } from '../hotels/entities/hotel.entity';
 import { HotelService } from '../hotels/hotel.service';
+import { Room } from '../room/entities/room.entity';
 
 @Injectable()
 export class TypeRoomService {
@@ -21,6 +22,9 @@ export class TypeRoomService {
 
     @Inject(forwardRef(() => HotelService))
     private readonly hotelService: HotelService,
+
+    @InjectRepository(Room)
+    private roomRepository: Repository<Room>,
   ) {}
 
   async create(
@@ -179,5 +183,57 @@ export class TypeRoomService {
       );
     }
     await this.typeRoomRepository.remove(typeRoom);
+  }
+
+  async searchTypeRooms(
+    startDate: Date,
+    endDate: Date,
+    capacity: number,
+  ): Promise<TypeRoom[]> {
+    const typeRooms = await this.typeRoomRepository
+      .createQueryBuilder('typeRoom')
+      .leftJoinAndSelect('typeRoom.rooms', 'room')
+      .where('room.capacity >= :capacity', { capacity })
+      .andWhere((qb) => {
+        const subQuery = qb
+          .subQuery()
+          .from(Room, 'bookedRoom')
+          .select('bookedRoom.type_room_id')
+          .where('bookedRoom.bookingDate BETWEEN :startDate AND :endDate', {
+            startDate,
+            endDate,
+          })
+          .getQuery();
+
+        return 'typeRoom.id NOT IN ' + subQuery;
+      })
+      .getMany();
+
+    return typeRooms;
+  }
+
+  async searchAvailableRooms(
+    startDate: Date,
+    endDate: Date,
+    capacity: number,
+  ): Promise<Room[]> {
+    return this.roomRepository
+      .createQueryBuilder('room')
+      .leftJoinAndSelect('room.typeRoomId', 'typeRoom')
+      .where('room.capacity >= :capacity', { capacity })
+      .andWhere((qb) => {
+        const subQuery = qb
+          .subQuery()
+          .from(Room, 'bookedRoom')
+          .select('bookedRoom.id')
+          .where('bookedRoom.bookingDate BETWEEN :startDate AND :endDate', {
+            startDate,
+            endDate,
+          })
+          .getQuery();
+
+        return 'room.id NOT IN ' + subQuery;
+      })
+      .getMany();
   }
 }

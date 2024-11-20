@@ -9,10 +9,11 @@ import { PermissionsModule } from '../permissions/permissions.module';
 import { UserModule } from '../users/user.module';
 import { JwtModule } from '@nestjs/jwt';
 import { JWT } from 'src/constants';
+import { Room } from '../room/entities/room.entity';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([TypeRoom]),
+    TypeOrmModule.forFeature([TypeRoom, Room]),
     LocalesModule,
     forwardRef(() => HotelModule),
     PermissionsModule,
