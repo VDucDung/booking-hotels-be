@@ -186,6 +186,7 @@ export class TypeRoomService {
   }
 
   async searchTypeRooms(
+    hotelId: number,
     startDate: Date,
     endDate: Date,
     capacity: number,
@@ -194,6 +195,7 @@ export class TypeRoomService {
       .createQueryBuilder('typeRoom')
       .leftJoinAndSelect('typeRoom.rooms', 'room')
       .where('room.capacity >= :capacity', { capacity })
+      .andWhere('typeRoom.hotel = :hotelId', { hotelId })
       .andWhere((qb) => {
         const subQuery = qb
           .subQuery()
@@ -213,6 +215,7 @@ export class TypeRoomService {
   }
 
   async searchAvailableRooms(
+    hotelId: number,
     startDate: Date,
     endDate: Date,
     capacity: number,
@@ -221,6 +224,7 @@ export class TypeRoomService {
       .createQueryBuilder('room')
       .leftJoinAndSelect('room.typeRoomId', 'typeRoom')
       .where('room.capacity >= :capacity', { capacity })
+      .andWhere('typeRoom.hotel = :hotelId', { hotelId })
       .andWhere((qb) => {
         const subQuery = qb
           .subQuery()

@@ -55,11 +55,17 @@ export class TypeRoomController {
 
   @Get('search')
   async searchTypeRooms(
+    @Query('hotelId') hotelId: number,
     @Query('startDate') startDate: Date,
     @Query('endDate') endDate: Date,
     @Query('capacity') capacity: number,
   ) {
-    return this.typeRoomService.searchTypeRooms(startDate, endDate, capacity);
+    return this.typeRoomService.searchTypeRooms(
+      hotelId,
+      startDate,
+      endDate,
+      capacity,
+    );
   }
 
   @Get()
