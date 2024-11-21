@@ -190,6 +190,7 @@ export class TypeRoomService {
     startDate: Date,
     endDate: Date,
     capacity: number,
+    numberOfRooms: number,
   ): Promise<TypeRoom[]> {
     const typeRooms = await this.typeRoomRepository
       .createQueryBuilder('typeRoom')
@@ -209,6 +210,18 @@ export class TypeRoomService {
 
         return 'typeRoom.id NOT IN ' + subQuery;
       })
+      .andWhere((qb) => {
+        const availableRoomsSubQuery = qb
+          .subQuery()
+          .from(Room, 'availableRoom')
+          .select('COUNT(availableRoom.id)', 'availableRoomsCount')
+          .where('availableRoom.type_room_id = typeRoom.id')
+          .andWhere('availableRoom.bookingDate IS NULL')
+          .getQuery();
+
+        return `(${availableRoomsSubQuery}) >= :numberOfRooms`;
+      })
+      .setParameter('numberOfRooms', numberOfRooms)
       .getMany();
 
     return typeRooms;

@@ -59,12 +59,14 @@ export class TypeRoomController {
     @Query('startDate') startDate: Date,
     @Query('endDate') endDate: Date,
     @Query('capacity') capacity: number,
+    @Query('numberOfRooms') numberOfRooms: number,
   ) {
     return this.typeRoomService.searchTypeRooms(
       hotelId,
       startDate,
       endDate,
       capacity,
+      numberOfRooms,
     );
   }
 
