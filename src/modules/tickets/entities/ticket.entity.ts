@@ -19,6 +19,21 @@ export class Ticket {
   @JoinColumn({ name: 'user_id' })
   user: User;
 
+  @Column({ nullable: false })
+  contactName: string;
+
+  @Column({ nullable: false })
+  contactEmail: string;
+
+  @Column({ nullable: false })
+  contactPhone: string;
+
+  @Column({ nullable: true })
+  guestFullName: string;
+
+  @Column({ type: 'text', array: true })
+  option: string[];
+
   @ManyToOne(() => Room, (room) => room.tickets)
   @JoinColumn({ name: 'room_id' })
   room: Room;
@@ -29,9 +44,15 @@ export class Ticket {
   @Column({ nullable: false })
   checkOutDate: Date;
 
+  @Column({ nullable: false })
+  checkInTime: string;
+
+  @Column({ nullable: false })
+  checkOutTime: string;
+
   @Column({
     type: 'enum',
-    enum: ['Cash ', 'Bank Transfer', 'Gift Card'],
+    enum: ['cash ', 'bank transfer', 'gift card'],
     default: null,
     nullable: true,
   })
@@ -39,7 +60,7 @@ export class Ticket {
 
   @Column({
     type: 'enum',
-    enum: ['pending', 'done', 'reject'],
+    enum: ['pending', 'paid', 'unpaid'],
     default: 'pending',
     nullable: true,
   })

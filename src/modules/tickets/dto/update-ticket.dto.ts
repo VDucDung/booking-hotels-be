@@ -1,23 +1,58 @@
-import { IsEnum, IsNotEmpty, IsDateString, IsOptional } from 'class-validator';
+import {
+  IsEnum,
+  IsOptional,
+  IsDateString,
+  IsString,
+  IsEmail,
+  IsArray,
+} from 'class-validator';
 
 export class UpdateTicketDto {
-  @IsNotEmpty()
   @IsOptional()
-  roomId: number;
+  roomId?: number;
 
+  @IsOptional()
+  @IsString()
+  contactName?: string;
+
+  @IsOptional()
+  @IsEmail()
+  contactEmail?: string;
+
+  @IsOptional()
+  @IsString()
+  contactPhone?: string;
+
+  @IsOptional()
+  @IsString()
+  guestFullName?: string;
+
+  @IsOptional()
+  @IsArray()
+  @IsString({ each: true })
+  option?: string[];
+
+  @IsOptional()
   @IsDateString()
-  @IsOptional()
-  checkInDate: string;
+  checkInDate?: string;
 
+  @IsOptional()
   @IsDateString()
-  @IsOptional()
-  checkOutDate: string;
+  checkOutDate?: string;
 
-  @IsEnum(['Cash', 'Bank Transfer', 'Gift Card'])
   @IsOptional()
-  paymentMethods: string;
+  @IsString()
+  checkInTime?: string;
 
-  @IsEnum(['pending', 'done', 'reject'])
   @IsOptional()
-  status: string;
+  @IsString()
+  checkOutTime?: string;
+
+  @IsOptional()
+  @IsEnum(['cash', 'bank transfer', 'gift card'])
+  paymentMethods?: string;
+
+  @IsOptional()
+  @IsEnum(['pending', 'paid', 'unpaid'])
+  status?: string;
 }

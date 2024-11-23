@@ -59,6 +59,7 @@ export class TicketService {
     const ticket = this.ticketRepository.create({
       user,
       room,
+      status: 'pending',
       ...createTicketDto,
     });
 
