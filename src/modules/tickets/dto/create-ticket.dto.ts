@@ -45,7 +45,8 @@ export class CreateTicketDto {
   @IsString()
   checkOutTime: string;
 
-  @IsEnum(['cash', 'bank transfer', 'gift card'])
+  @IsOptional()
+  @IsEnum(['cash', 'bank card'])
   paymentMethods: string;
 
   @IsOptional()

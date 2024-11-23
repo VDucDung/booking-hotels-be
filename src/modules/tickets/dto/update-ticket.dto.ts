@@ -49,7 +49,7 @@ export class UpdateTicketDto {
   checkOutTime?: string;
 
   @IsOptional()
-  @IsEnum(['cash', 'bank transfer', 'gift card'])
+  @IsEnum(['cash', 'null', 'bank card'])
   paymentMethods?: string;
 
   @IsOptional()

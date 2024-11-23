@@ -52,7 +52,7 @@ export class Ticket {
 
   @Column({
     type: 'enum',
-    enum: ['cash ', 'bank transfer', 'gift card'],
+    enum: ['cash', 'bank card'],
     default: null,
     nullable: true,
   })
