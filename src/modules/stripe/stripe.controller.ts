@@ -5,6 +5,7 @@ import {
   UseGuards,
   Req,
   Headers,
+  Get,
 } from '@nestjs/common';
 import { StripeService } from './stripe.service';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
@@ -12,7 +13,6 @@ import { CreateCheckoutSessionDto } from './dto/create-stripe.dto';
 import { AuthGuard } from 'src/common/guards/auth.guard';
 import { User } from '../users/entities/user.entity';
 import { UserDecorator } from 'src/common/decorators/user.decorator';
-import { CreatePaymentIntentDto } from './dto/create-payment-intent.dto';
 import Stripe from 'stripe';
 import { ErrorHelper } from 'src/common/helpers';
 import { TransactionService } from 'src/transactions/transactions.service';
@@ -30,22 +30,6 @@ export class StripeController {
     private readonly userService: UserService,
     private readonly ticketService: TicketService,
   ) {}
-
-  @Post('create-payment-intent')
-  @UseGuards(AuthGuard)
-  @ApiBearerAuth()
-  async createPaymentIntent(
-    @UserDecorator() user: User,
-    @Body() body: CreatePaymentIntentDto,
-  ) {
-    const { amount, currency } = body;
-    const paymentIntent = await this.stripeService.createPaymentIntent({
-      amount,
-      currency,
-      userId: user.id,
-    });
-    return { clientSecret: paymentIntent.client_secret };
-  }
 
   @Post('/create-booking-payment')
   @UseGuards(AuthGuard)
@@ -67,6 +51,26 @@ export class StripeController {
   @ApiBearerAuth()
   async createStripeAccount(@UserDecorator() user: User) {
     return this.stripeService.createConnectedAccount(user);
+  }
+
+  @Get('account-status')
+  @UseGuards(AuthGuard)
+  @ApiBearerAuth()
+  async getAccountStatus(@UserDecorator() user: User) {
+    if (!user.stripeAccountId) {
+      return { connected: false };
+    }
+    return this.stripeService.retrieveAccountStatus(user.stripeAccountId);
+  }
+
+  @Post('account-link')
+  @UseGuards(AuthGuard)
+  @ApiBearerAuth()
+  async generateAccountLink(@UserDecorator() user: User) {
+    if (!user.stripeAccountId) {
+      ErrorHelper.BadRequestException('No Stripe account found');
+    }
+    return this.stripeService.generateAccountLink(user.stripeAccountId);
   }
 
   @Post('create-checkout-session')

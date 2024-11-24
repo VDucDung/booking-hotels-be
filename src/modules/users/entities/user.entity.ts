@@ -104,6 +104,16 @@ export class User {
   @Column({ nullable: true })
   stripeAccountId: string;
 
+  @Column({ type: 'jsonb', nullable: true })
+  stripeAccountStatus: {
+    chargesEnabled: boolean;
+    payoutsEnabled: boolean;
+    detailsSubmitted: boolean;
+  };
+
+  @Column({ default: false })
+  isStripeVerified: boolean;
+
   @Column({ default: 0 })
   balance: number;
 

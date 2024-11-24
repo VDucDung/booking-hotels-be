@@ -31,29 +31,6 @@ export class StripeService {
     }
   }
 
-  async createPaymentIntent({
-    amount,
-    currency,
-    userId,
-  }: {
-    amount: number;
-    currency: string;
-    userId: number;
-  }): Promise<Stripe.PaymentIntent> {
-    const paymentIntent = await this.stripe.paymentIntents.create({
-      amount,
-      currency,
-    });
-    await this.transactionService.createTransaction({
-      userId,
-      amount,
-      type: TransactionType.DEPOSIT,
-      stripePaymentIntentId: paymentIntent.id,
-    });
-
-    return paymentIntent;
-  }
-
   async createBookingPaymentIntent({
     ticketId,
     user,
@@ -99,40 +76,240 @@ export class StripeService {
   }
 
   async createConnectedAccount(user: User) {
-    if (user.stripeAccountId) {
+    try {
+      if (user.stripeAccountId) {
+        const accountStatus = await this.retrieveAccountStatus(
+          user.stripeAccountId,
+        );
+
+        return {
+          message: 'User already has a Stripe Connected Account',
+          stripeAccountId: user.stripeAccountId,
+          accountStatus,
+        };
+      }
+
+      const account = await this.stripe.accounts.create({
+        type: 'express',
+        country: 'VN',
+        email: user.email,
+        business_type: 'individual',
+        capabilities: {
+          card_payments: { requested: true },
+          transfers: { requested: true },
+        },
+        metadata: {
+          userId: user.id.toString(),
+        },
+      });
+
+      await this.userService.updateStripeAccountId(user.id, account.id);
+
+      const accountLink = await this.stripe.accountLinks.create({
+        account: account.id,
+        refresh_url: `${process.env.FRONTEND_URL}/settings/payments/refresh`,
+        return_url: `${process.env.FRONTEND_URL}/settings/payments/success`,
+        type: 'account_onboarding',
+      });
+
       return {
-        message: 'User already has a Stripe Connected Account',
-        stripeAccountId: user.stripeAccountId,
+        message: 'Stripe account created successfully',
+        stripeAccountId: account.id,
+        onboardingUrl: accountLink.url,
       };
+    } catch (error) {
+      console.error('Error creating connected account:', error);
+      ErrorHelper.InternalServerErrorException(
+        'Failed to create Stripe connected account',
+      );
     }
-
-    const account = await this.stripe.accounts.create({
-      type: 'express',
-      country: 'US',
-      email: user.email,
-      business_type: 'individual',
-      capabilities: {
-        card_payments: { requested: true },
-        transfers: { requested: true },
-      },
-    });
-
-    await this.userService.updateStripeAccountId(user.id, account.id);
-
-    const accountLink = await this.stripe.accountLinks.create({
-      account: account.id,
-      refresh_url: `${process.env.FRONTEND_URL_ACCOUNT}/refresh`,
-      return_url: `${process.env.FRONTEND_URL_ACCOUNT}/success`,
-      type: 'account_onboarding',
-    });
-
-    return {
-      message: 'Stripe account created successfully',
-      stripeAccountId: account.id,
-      onboardingUrl: accountLink.url,
-    };
   }
 
+  async generateAccountLink(accountId: string) {
+    try {
+      const accountLink = await this.stripe.accountLinks.create({
+        account: accountId,
+        refresh_url: `${process.env.FRONTEND_URL}/settings/payments/refresh`,
+        return_url: `${process.env.FRONTEND_URL}/settings/payments/success`,
+        type: 'account_onboarding',
+      });
+
+      return accountLink;
+    } catch (error) {
+      console.error('Error generating account link:', error);
+      ErrorHelper.InternalServerErrorException(
+        'Failed to generate account link',
+      );
+    }
+  }
+
+  async retrieveAccountStatus(accountId: string) {
+    try {
+      const account = await this.stripe.accounts.retrieve(accountId);
+
+      return {
+        id: account.id,
+        chargesEnabled: account.charges_enabled,
+        payoutsEnabled: account.payouts_enabled,
+        detailsSubmitted: account.details_submitted,
+        requirements: {
+          currentlyDue: account.requirements?.currently_due,
+          pendingVerification: account.requirements?.pending_verification,
+        },
+      };
+    } catch (error) {
+      console.error('Error retrieving account status:', error);
+      ErrorHelper.InternalServerErrorException(
+        'Failed to retrieve account status',
+      );
+    }
+  }
+
+  async handleConnectWebhookEvent(event: Stripe.Event) {
+    try {
+      switch (event.type) {
+        case 'account.updated': {
+          const account = event.data.object as Stripe.Response<Stripe.Account>;
+          const userId = account.metadata?.userId;
+
+          if (userId) {
+            await this.userService.updateStripeAccountStatus(parseInt(userId), {
+              isStripeVerified:
+                account.details_submitted && account.charges_enabled,
+              stripeAccountStatus: {
+                chargesEnabled: account.charges_enabled,
+                payoutsEnabled: account.payouts_enabled,
+                detailsSubmitted: account.details_submitted,
+              },
+            });
+
+            console.log('Updated account status for user:', {
+              userId,
+              accountId: account.id,
+              status:
+                account.details_submitted && account.charges_enabled
+                  ? 'verified'
+                  : 'pending',
+            });
+          }
+          break;
+        }
+
+        case 'account.application.deauthorized': {
+          const application = event.data.object as Stripe.Application;
+
+          const accountId = event.account;
+
+          if (accountId) {
+            const account = await this.stripe.accounts.retrieve(accountId);
+            const userId = account.metadata?.userId;
+
+            if (userId) {
+              await this.userService.removeStripeAccount(parseInt(userId));
+
+              console.log('Removed Stripe account for user:', {
+                userId,
+                accountId,
+                applicationId: application.id,
+              });
+            }
+          }
+          break;
+        }
+
+        case 'capability.updated': {
+          const capability = event.data.object as Stripe.Capability;
+          const accountId = event.account;
+
+          if (accountId) {
+            const account = await this.stripe.accounts.retrieve(accountId);
+            const userId = account.metadata?.userId;
+
+            if (userId) {
+              await this.userService.updateStripeAccountStatus(
+                parseInt(userId),
+                {
+                  isStripeVerified:
+                    account.details_submitted && account.charges_enabled,
+                  stripeAccountStatus: {
+                    chargesEnabled: account.charges_enabled,
+                    payoutsEnabled: account.payouts_enabled,
+                    detailsSubmitted: account.details_submitted,
+                  },
+                },
+              );
+
+              console.log('Updated account capability for user:', {
+                userId,
+                accountId,
+                capability: capability.id,
+                status: capability.status,
+              });
+            }
+          }
+          break;
+        }
+
+        default: {
+          console.log(`Unhandled event type: ${event.type}`);
+        }
+      }
+    } catch (error) {
+      console.error('Error handling webhook event:', {
+        eventType: event.type,
+        error: error.message,
+      });
+      ErrorHelper.InternalServerErrorException(
+        `Failed to handle webhook event: ${event.type}`,
+      );
+    }
+  }
+
+  async checkAccountStatus(accountId: string) {
+    try {
+      const account = await this.stripe.accounts.retrieve(accountId);
+
+      return {
+        id: account.id,
+        chargesEnabled: account.charges_enabled,
+        payoutsEnabled: account.payouts_enabled,
+        detailsSubmitted: account.details_submitted,
+        requirements: account.requirements,
+      };
+    } catch (error) {
+      console.error('Error checking account status:', error);
+      throw error;
+    }
+  }
+
+  async createTransfer({
+    amount,
+    currency = 'vnd',
+    destinationAccountId,
+    transferGroup,
+  }: {
+    amount: number;
+    currency?: string;
+    destinationAccountId: string;
+    transferGroup: string;
+  }) {
+    try {
+      const platformFee = Math.floor(amount * 0.1);
+      const transferAmount = amount - platformFee;
+
+      const transfer = await this.stripe.transfers.create({
+        amount: transferAmount,
+        currency,
+        destination: destinationAccountId,
+        transfer_group: transferGroup,
+      });
+
+      return transfer;
+    } catch (error) {
+      console.error('Error creating transfer:', error);
+      ErrorHelper.InternalServerErrorException('Failed to create transfer');
+    }
+  }
   async createCheckoutSession({
     userId,
     amount,

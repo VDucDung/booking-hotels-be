@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { ILike, Not, Repository } from 'typeorm';
@@ -22,6 +23,7 @@ import { CommonHelper } from 'src/helpers/common.helper';
 import { Role } from '../roles/entities/role.entity';
 import { UploadService } from '../uploads/upload.service';
 import { AuthProviderService } from '../auth_provider/authProvider.service';
+import { StripeAccountStatus } from 'src/interfaces/stripe.interface';
 
 @Injectable()
 export class UserService {
@@ -198,6 +200,95 @@ export class UserService {
     }
 
     await this.userRepository.softDelete(user.id);
+  }
+
+  async updateStripeAccountStatus(
+    userId: number,
+    data: {
+      isStripeVerified: boolean;
+      stripeAccountStatus: StripeAccountStatus;
+    },
+  ): Promise<User> {
+    try {
+      const user = await this.userRepository.findOne({
+        where: { id: userId },
+      });
+
+      if (!user) {
+        ErrorHelper.NotFoundException('User not found');
+      }
+
+      const updatedUser = await this.userRepository.save({
+        ...user,
+        isStripeVerified: data.isStripeVerified,
+        stripeAccountStatus: data.stripeAccountStatus,
+        updatedAt: new Date(),
+      });
+
+      console.log('Updated Stripe account status for user:', {
+        userId,
+        isStripeVerified: data.isStripeVerified,
+        stripeAccountStatus: data.stripeAccountStatus,
+      });
+
+      const { password, ...result } = updatedUser;
+      return result as User;
+    } catch (error) {
+      console.error('Error updating Stripe account status:', error);
+      ErrorHelper.InternalServerErrorException(
+        'Failed to update Stripe account status',
+      );
+    }
+  }
+
+  async isUserStripeVerified(userId: number): Promise<boolean> {
+    try {
+      const user = await this.userRepository.findOne({
+        where: { id: userId },
+        select: ['isStripeVerified', 'stripeAccountStatus'],
+      });
+
+      if (!user) {
+        return false;
+      }
+
+      return (
+        user.isStripeVerified &&
+        user.stripeAccountStatus?.chargesEnabled &&
+        user.stripeAccountStatus?.payoutsEnabled &&
+        user.stripeAccountStatus?.detailsSubmitted
+      );
+    } catch (error) {
+      console.error('Error checking Stripe verification status:', error);
+      return false;
+    }
+  }
+
+  async removeStripeAccount(userId: number): Promise<void> {
+    try {
+      const user = await this.userRepository.findOne({
+        where: { id: userId },
+      });
+
+      if (!user) {
+        ErrorHelper.NotFoundException('User not found');
+      }
+
+      await this.userRepository.save({
+        ...user,
+        stripeAccountId: null,
+        isStripeVerified: false,
+        stripeAccountStatus: null,
+        updatedAt: new Date(),
+      });
+
+      console.log('Removed Stripe account information for user:', userId);
+    } catch (error) {
+      console.error('Error removing Stripe account information:', error);
+      ErrorHelper.InternalServerErrorException(
+        'Failed to remove Stripe account information',
+      );
+    }
   }
 
   async changePassword(
