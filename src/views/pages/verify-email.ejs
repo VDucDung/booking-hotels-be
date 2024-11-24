@@ -170,7 +170,7 @@
                 method: 'POST'
             })
             if (response.statusCode === 200 || response.status === 200 || response.statusCode === 201 ||response.status === 201 ) {
-                toastr.success('Confirm success, redirect to the homepage after 3 seconds');
+                toastr.success('Confirm success, redirect after 3 seconds');
                 setTimeout(() => {
                     window.location.href = '';
                 }, 3000);

@@ -117,7 +117,7 @@ export class AuthController {
       return res.redirect(`${URL_HOST.production_fe}/auth/login`);
     } else if (user?.isVerify && user?.role.name === ERole.PARTNER) {
       return res.redirect(
-        `${URL_HOST.production_fe}/partnership/partnership/stripeAccount`,
+        `${URL_HOST.production_fe}/partnership/signup/stripeAccount`,
       );
     }
 
