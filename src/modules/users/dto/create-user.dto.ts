@@ -6,6 +6,7 @@ import {
   MaxLength,
   IsDateString,
   IsEnum,
+  IsString,
 } from 'class-validator';
 import { i18nValidationMessage } from 'nestjs-i18n';
 import { PASSWORD_REGEX, PHONE_VN_REGEX } from 'src/constants';
@@ -158,4 +159,8 @@ export class CreateUserDto {
     required: false,
   })
   lastActive?: Date;
+
+  @IsOptional()
+  @IsString()
+  stripeAccountId?: string;
 }

@@ -6,6 +6,7 @@ import {
   IsEmail,
   IsArray,
 } from 'class-validator';
+import { PaymentMethod, TicketStatus } from 'src/enums/ticket.enum';
 
 export class UpdateTicketDto {
   @IsOptional()
@@ -49,10 +50,19 @@ export class UpdateTicketDto {
   checkOutTime?: string;
 
   @IsOptional()
-  @IsEnum(['cash', 'null', 'bank card'])
+  @IsEnum(PaymentMethod)
   paymentMethods?: string;
 
   @IsOptional()
-  @IsEnum(['pending', 'paid', 'unpaid'])
+  @IsEnum(TicketStatus)
   status?: string;
+
+  @IsOptional()
+  amount?: number;
+
+  @IsOptional()
+  stripePaymentIntentId?: string;
+
+  @IsOptional()
+  stripeTransferId?: string;
 }

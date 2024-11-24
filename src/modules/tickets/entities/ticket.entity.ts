@@ -1,3 +1,4 @@
+import { PaymentMethod, TicketStatus } from 'src/enums/ticket.enum';
 import { Room } from 'src/modules/room/entities/room.entity';
 import { User } from 'src/modules/users/entities/user.entity';
 import {
@@ -52,7 +53,7 @@ export class Ticket {
 
   @Column({
     type: 'enum',
-    enum: ['cash', 'bank card'],
+    enum: PaymentMethod,
     default: null,
     nullable: true,
   })
@@ -60,11 +61,20 @@ export class Ticket {
 
   @Column({
     type: 'enum',
-    enum: ['pending', 'paid', 'unpaid'],
-    default: 'pending',
+    enum: TicketStatus,
+    default: TicketStatus.PENDING,
     nullable: true,
   })
   status: string;
+
+  @Column({ nullable: false, default: 0 })
+  amount: number;
+
+  @Column({ nullable: true })
+  stripePaymentIntentId: string;
+
+  @Column({ nullable: true })
+  stripeTransferId: string;
 
   @CreateDateColumn({ name: 'created_at' })
   createdAt: Date;

@@ -16,6 +16,7 @@ import {
 import { RoomService } from '../room/room.service';
 import { User } from '../users/entities/user.entity';
 import { ERole } from 'src/enums/roles.enum';
+import { TicketStatus } from 'src/enums/ticket.enum';
 
 @Injectable()
 export class TicketService {
@@ -59,13 +60,53 @@ export class TicketService {
     const ticket = this.ticketRepository.create({
       user,
       room,
-      status: 'pending',
+      status: TicketStatus.PENDING,
       ...createTicketDto,
     });
 
     await this.ticketRepository.save(ticket);
     delete ticket.user;
     delete ticket.room;
+    return ticket;
+  }
+
+  async updateTicketStatus(
+    ticketId: string,
+    status: TicketStatus,
+  ): Promise<Ticket> {
+    const ticket = await this.ticketRepository.findOne({
+      where: { id: ticketId },
+    });
+
+    if (!ticket) {
+      ErrorHelper.NotFoundException('Ticket not found');
+    }
+
+    ticket.status = status;
+    return this.ticketRepository.save(ticket);
+  }
+
+  async handleSuccessfulBookingPayment(session: any) {
+    const ticket = await this.ticketRepository.findOne({
+      where: { stripePaymentIntentId: session.payment_intent },
+    });
+
+    if (!ticket) {
+      throw new Error('Ticket not found');
+    }
+
+    ticket.status = TicketStatus.PAID;
+    await this.ticketRepository.save(ticket);
+
+    const hotelOwnerId = session.metadata.hotelOwnerId;
+    const hotelOwnerStripeAccount =
+      await this.userService.getUserById(hotelOwnerId);
+
+    hotelOwnerStripeAccount.balance += ticket.amount;
+    await this.userService.updateUserById(hotelOwnerId, {
+      balance: hotelOwnerStripeAccount.balance,
+    });
+
     return ticket;
   }
 
@@ -133,17 +174,16 @@ export class TicketService {
   }
 
   async update(
-    id: string,
+    ticketId: string,
     user: User,
     updateTicketDto: UpdateTicketDto,
   ): Promise<Ticket> {
-    const ticket = await this.findOne(id);
+    const ticket = await this.findOne(ticketId);
     if (!ticket) {
       ErrorHelper.ForbiddenException(
         this.localesService.translate(TICKET_MESSAGE.TICKET_NOT_FOUND),
       );
     }
-    console.log(ticket.user.id, user.id);
 
     if (ticket.user.id !== user.id && user.role.name !== ERole.ADMIN) {
       ErrorHelper.ForbiddenException(
@@ -174,7 +214,6 @@ export class TicketService {
       );
     }
 
-    // Lưu lại ticket đã được cập nhật
     return this.ticketRepository.save(updatedTicket);
   }
 

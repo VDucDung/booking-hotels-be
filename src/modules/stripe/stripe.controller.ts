@@ -18,6 +18,8 @@ import { ErrorHelper } from 'src/common/helpers';
 import { TransactionService } from 'src/transactions/transactions.service';
 import { TransactionStatus } from 'src/enums/transaction.enum';
 import { UserService } from '../users/user.service';
+import { TicketService } from '../tickets/ticket.service';
+import { TicketStatus } from 'src/enums/ticket.enum';
 
 @ApiTags('stripe')
 @Controller('stripe')
@@ -26,6 +28,7 @@ export class StripeController {
     private readonly stripeService: StripeService,
     private readonly transactionService: TransactionService,
     private readonly userService: UserService,
+    private readonly ticketService: TicketService,
   ) {}
 
   @Post('create-payment-intent')
@@ -42,6 +45,28 @@ export class StripeController {
       userId: user.id,
     });
     return { clientSecret: paymentIntent.client_secret };
+  }
+
+  @Post('/create-booking-payment')
+  @UseGuards(AuthGuard)
+  @ApiBearerAuth()
+  async createBookingPayment(
+    @UserDecorator() user: User,
+    @Body() body: { ticketId: string; hotelOwnerId: number; amount: number },
+  ) {
+    return this.stripeService.createBookingPaymentIntent({
+      ticketId: body.ticketId,
+      user,
+      hotelOwnerId: body.hotelOwnerId,
+      amount: body.amount,
+    });
+  }
+
+  @Post('/create-stripe-account')
+  @UseGuards(AuthGuard)
+  @ApiBearerAuth()
+  async createStripeAccount(@UserDecorator() user: User) {
+    return this.stripeService.createConnectedAccount(user);
   }
 
   @Post('create-checkout-session')
@@ -82,6 +107,10 @@ export class StripeController {
           paymentIntent.id,
           TransactionStatus.SUCCESS,
         );
+        await this.ticketService.updateTicketStatus(
+          paymentIntent.id,
+          TicketStatus.PAID,
+        );
         console.log(`PaymentIntent succeeded: ${paymentIntent.id}`);
         break;
 
@@ -104,6 +133,11 @@ export class StripeController {
         await this.transactionService.updateTransactionStatus(
           session.id,
           TransactionStatus.SUCCESS,
+        );
+
+        await this.ticketService.updateTicketStatus(
+          session.id,
+          TicketStatus.PAID,
         );
 
         console.log(`Checkout Session completed: ${session.id}`);

@@ -52,4 +52,13 @@ export class CreateTicketDto {
   @IsOptional()
   @IsEnum(['pending', 'paid', 'unpaid'])
   status?: string;
+
+  @IsNotEmpty()
+  amount: number;
+
+  @IsOptional()
+  stripePaymentIntentId?: string;
+
+  @IsOptional()
+  stripeTransferId?: string;
 }

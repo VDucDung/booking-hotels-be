@@ -18,8 +18,6 @@ import { TICKET_MESSAGE } from 'src/messages';
 import { Ticket } from './entities/ticket.entity';
 import { AuthGuard } from 'src/common/guards/auth.guard';
 import { UserDecorator } from 'src/common/decorators/user.decorator';
-// import { AuthDecorator } from 'src/common/decorators/auth.decorator';
-// import { ERole } from 'src/enums/roles.enum';
 
 @ApiTags('tickets')
 @Controller('tickets')

@@ -154,6 +154,15 @@ export class UserService {
     return user;
   }
 
+  async updateStripeAccountId(
+    userId: number,
+    stripeAccountId: string,
+  ): Promise<User> {
+    const user = await this.getUserById(userId);
+    user.stripeAccountId = stripeAccountId;
+    return await this.userRepository.save(user);
+  }
+
   async deleteUser(userId: number): Promise<User> {
     const user = await this.getUserById(userId);
     if (!user) {

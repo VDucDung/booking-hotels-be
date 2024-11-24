@@ -101,6 +101,9 @@ export class User {
   })
   authProviders: AuthProvider[];
 
+  @Column({ nullable: true })
+  stripeAccountId: string;
+
   @Column({ default: 0 })
   balance: number;
 
