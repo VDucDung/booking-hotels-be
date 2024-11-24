@@ -95,7 +95,11 @@ export class UserService {
       newUsername = `movieapp${noUser + 1}`;
     }
 
-    if (!createUserDto.role || createUserDto.role.name === ERole.USER) {
+    if (
+      !createUserDto.role ||
+      createUserDto.role.name === ERole.USER ||
+      createUserDto.role.name === ERole.PARTNER
+    ) {
       createUserDto['username'] = newUsername;
     }
     let roleUser = await this.roleRepository.findOne({

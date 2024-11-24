@@ -144,16 +144,11 @@ export class AuthService {
   }
 
   async register(registerDto: RegisterDto): Promise<void> {
-    const { fullname, email, password, role } = registerDto;
+    const { fullname, email, password } = registerDto;
     const expires = new Date(Date.now() + EXPIRES_TOKEN_EMAIL_VERIFY);
     const roleUser = await this.roleService.findOne({
       where: { name: 'USER' },
     });
-    if (role) {
-      await this.roleService.findOne({
-        where: { name: role },
-      });
-    }
 
     const registerData = {
       fullname,
@@ -181,6 +176,44 @@ export class AuthService {
     await this.emailService.sendEmail({
       emails: email,
       subject: EMAIL_SUBJECT.verify,
+      context: linkVerify,
+      type: EMAIL_TYPES.verify,
+    });
+  }
+
+  async registerPartner(registerDto: RegisterDto): Promise<void> {
+    const { fullname, email, password } = registerDto;
+    const expires = new Date(Date.now() + EXPIRES_TOKEN_EMAIL_VERIFY);
+    const roleUser = await this.roleService.findOne({
+      where: { name: 'PARTNER' },
+    });
+
+    const registerData = {
+      fullname,
+      email,
+      password,
+      role: roleUser,
+      verifyExpireAt: expires,
+    };
+
+    const user = await this.userService.createUser(registerData);
+
+    await this.authProviderService.create({
+      provider: 'local',
+      providerId: `${user.id}`,
+      userId: user.id,
+    });
+
+    const tokenVerify = this.cryptoService.encryptObj(
+      { email, expires, type: EMAIL_TYPES.verify },
+      SECRET.tokenVerify,
+    );
+
+    const linkVerify = `${URL_HOST.production_be}/auth/verify?token=${tokenVerify}`;
+
+    await this.emailService.sendEmail({
+      emails: email,
+      subject: EMAIL_SUBJECT.account,
       context: linkVerify,
       type: EMAIL_TYPES.verify,
     });

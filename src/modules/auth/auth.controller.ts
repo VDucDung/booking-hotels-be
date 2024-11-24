@@ -25,6 +25,7 @@ import {
   ResetPasswordDto,
   VerifyOTPForgotPasswordDto,
 } from './dto/forgot-password.dto';
+import { ERole } from 'src/enums/roles.enum';
 
 @ApiTags('auth')
 @Controller('auth')
@@ -81,6 +82,17 @@ export class AuthController {
     };
   }
 
+  @Post('register-partner')
+  async registerPartner(
+    @Body() registerDto: RegisterDto,
+  ): Promise<{ statusCode: number; message: string }> {
+    await this.authService.registerPartner(registerDto);
+    return {
+      statusCode: HttpStatus.CREATED,
+      message: this.localesService.translate(AUTH_MESSAGE.REGISTER_SUCCESS),
+    };
+  }
+
   @Get('verify')
   @HttpCode(HttpStatus.OK)
   async renderPageVerifyEmail(
@@ -101,8 +113,12 @@ export class AuthController {
 
     const user = await this.userService.getUserByEmail(payload.email);
 
-    if (user?.isVerify) {
+    if (user?.isVerify && user?.role.name === ERole.USER) {
       return res.redirect(`${URL_HOST.production_fe}/auth/login`);
+    } else if (user?.isVerify && user?.role.name === ERole.PARTNER) {
+      return res.redirect(
+        `${URL_HOST.production_fe}/partnership/partnership/stripeAccount`,
+      );
     }
 
     if (isExpired) {
