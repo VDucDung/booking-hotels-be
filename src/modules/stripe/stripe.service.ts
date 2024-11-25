@@ -91,7 +91,7 @@ export class StripeService {
 
       const account = await this.stripe.accounts.create({
         type: 'express',
-        country: 'VN',
+        country: 'US',
         email: user.email,
         business_type: 'individual',
         capabilities: {
