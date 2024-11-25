@@ -165,6 +165,22 @@ export class StripeService {
     }
   }
 
+  async deleteStripeAccount(user: any) {
+    try {
+      const deletedAccount = await this.stripe.accounts.del(
+        user.stripeAccountId,
+      );
+
+      await this.userService.updateUserById(user.id, {
+        stripeAccountId: null,
+      });
+
+      return deletedAccount;
+    } catch (error) {
+      throw new Error('Error deleting Stripe account: ' + error.message);
+    }
+  }
+
   async handleConnectWebhookEvent(event: Stripe.Event) {
     try {
       switch (event.type) {

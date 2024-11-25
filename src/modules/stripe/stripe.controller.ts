@@ -6,6 +6,7 @@ import {
   Req,
   Headers,
   Get,
+  Delete,
 } from '@nestjs/common';
 import { StripeService } from './stripe.service';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
@@ -85,6 +86,23 @@ export class StripeController {
       userId: user.id,
     });
     return { sessionId: session.id };
+  }
+
+  @Delete('delete-account')
+  @UseGuards(AuthGuard)
+  @ApiBearerAuth()
+  async deleteAccount(@UserDecorator() user: User) {
+    if (!user.stripeAccountId) {
+      ErrorHelper.BadRequestException('No Stripe account found');
+    }
+
+    try {
+      const deletedAccount = await this.stripeService.deleteStripeAccount(user);
+
+      return { message: 'Stripe account deleted successfully', deletedAccount };
+    } catch (error) {
+      ErrorHelper.InternalServerErrorException('Error deleting Stripe account');
+    }
   }
 
   @Post('webhook')
