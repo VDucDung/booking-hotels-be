@@ -91,7 +91,7 @@ export class StripeService {
 
       const account = await this.stripe.accounts.create({
         type: 'express',
-        country: 'US',
+        country: 'VN',
         email: user.email,
         business_type: 'individual',
         capabilities: {
@@ -107,8 +107,8 @@ export class StripeService {
 
       const accountLink = await this.stripe.accountLinks.create({
         account: account.id,
-        refresh_url: `${process.env.FRONTEND_URL}/settings/payments/refresh`,
-        return_url: `${process.env.FRONTEND_URL}/settings/payments/success`,
+        refresh_url: `${process.env.FRONTEND_URL_ACCOUNT}/refresh`,
+        return_url: `${process.env.FRONTEND_URL_ACCOUNT}/success`,
         type: 'account_onboarding',
       });
 
