@@ -48,7 +48,7 @@ export class Room {
 
   @ManyToOne(() => User, { nullable: false, onDelete: 'CASCADE' })
   @JoinColumn({ name: 'partner_id' })
-  partnerId: number;
+  partner: User;
 
   @OneToMany(() => Ticket, (ticket) => ticket.room)
   tickets: Ticket[];

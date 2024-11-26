@@ -90,7 +90,7 @@ export class User {
   @OneToMany(() => Hotel, (hotel) => hotel.partner)
   hotels: Hotel[];
 
-  @OneToMany(() => Room, (room) => room.partnerId)
+  @OneToMany(() => Room, (room) => room.partner)
   rooms: Room[];
 
   @OneToMany(() => TypeRoom, (type_room) => type_room.partner)

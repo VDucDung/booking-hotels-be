@@ -31,7 +31,7 @@ export class TicketService {
   async create(
     userId: number,
     createTicketDto: CreateTicketDto,
-  ): Promise<Ticket> {
+  ): Promise<Ticket & { partnerId?: number }> {
     const { roomId } = createTicketDto;
 
     const user = await this.userService.getUserById(userId);
@@ -65,9 +65,16 @@ export class TicketService {
     });
 
     await this.ticketRepository.save(ticket);
-    delete ticket.user;
-    delete ticket.room;
-    return ticket;
+
+    const ticketResponse = {
+      ...ticket,
+      partnerId: room.partner.id,
+    };
+
+    delete ticketResponse.user;
+    delete ticketResponse.room;
+
+    return ticketResponse;
   }
 
   async updateTicketStatus(

@@ -54,10 +54,20 @@ export class RoomService {
   }
 
   async findOne(id: number): Promise<Room> {
-    const room = await this.roomRepository.findOne({ where: { id } });
+    const room = await this.roomRepository.findOne({
+      where: { id },
+      relations: ['partner'],
+      select: {
+        partner: {
+          id: true,
+        },
+      },
+    });
+
     if (!room) {
       ErrorHelper.NotFoundException(ROOM_MESSAGE.ROOM_NOT_FOUND);
     }
+
     return room;
   }
 
@@ -68,7 +78,7 @@ export class RoomService {
     file: any,
   ): Promise<Room> {
     const room = await this.findOne(id);
-    if (room.partnerId !== user.id && user.role.name !== 'ADMIN') {
+    if (room.partner.id !== user.id && user.role.name !== 'ADMIN') {
       ErrorHelper.ForbiddenException(
         this.localesService.translate(AUTH_MESSAGE.NO_PERMISSION),
       );
@@ -84,7 +94,7 @@ export class RoomService {
 
   async remove(id: number, user: User): Promise<boolean> {
     const room = await this.findOne(id);
-    if (room.partnerId !== user.id && user.role.name !== 'ADMIN') {
+    if (room.partner.id !== user.id && user.role.name !== 'ADMIN') {
       ErrorHelper.ForbiddenException(
         this.localesService.translate(AUTH_MESSAGE.NO_PERMISSION),
       );
