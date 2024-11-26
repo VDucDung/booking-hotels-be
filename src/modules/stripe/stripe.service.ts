@@ -37,44 +37,61 @@ export class StripeService {
     hotelOwnerId,
     amount,
     currency = 'vnd',
+    paymentMethod = PaymentMethod.BANK_CARD,
+    hotelStripeAccountId,
   }: {
     ticketId: string;
     user: User;
     hotelOwnerId: number;
     amount: number;
     currency?: string;
+    paymentMethod?: PaymentMethod;
+    hotelStripeAccountId?: string;
   }): Promise<Stripe.PaymentIntent> {
-    const hotelOwner = await this.userService.getUserById(hotelOwnerId);
+    let stripeAccountId;
 
-    if (!hotelOwner || !hotelOwner.stripeAccountId) {
-      ErrorHelper.NotFoundException(
-        'Hotel owner does not have a connected Stripe account',
-      );
+    if (!hotelStripeAccountId) {
+      if (!hotelOwnerId) {
+        ErrorHelper.BadRequestException(
+          'Require hotelOwnerId or hotelStripeAccountId',
+        );
+      }
+
+      const hotelOwner = await this.userService.getUserById(hotelOwnerId);
+
+      if (!hotelOwner || !hotelOwner.stripeAccountId) {
+        ErrorHelper.NotFoundException(
+          'Hotel owner does not have a connected Stripe account',
+        );
+      }
+
+      stripeAccountId = hotelOwner.stripeAccountId;
+    } else {
+      stripeAccountId = hotelStripeAccountId;
     }
 
     const paymentIntent = await this.stripe.paymentIntents.create({
       amount,
       currency,
-      transfer_group: `booking_${hotelOwnerId}`,
+      transfer_group: `booking_${stripeAccountId}`,
     });
 
     const transfer = await this.stripe.transfers.create({
-      amount: Math.floor(amount * 0.9),
+      amount: amount, //Math.floor(amount * 0.9)
       currency,
-      destination: hotelOwner.stripeAccountId,
-      transfer_group: `booking_${hotelOwnerId}`,
+      destination: stripeAccountId,
+      transfer_group: `booking_${stripeAccountId}`,
     });
 
     await this.ticketService.update(ticketId, user, {
       amount,
-      paymentMethods: PaymentMethod.BANK_CARD,
+      paymentMethods: paymentMethod,
       stripePaymentIntentId: paymentIntent.id,
       stripeTransferId: transfer.id,
     });
 
     return paymentIntent;
   }
-
   async createConnectedAccount(user: User) {
     try {
       if (user.stripeAccountId) {

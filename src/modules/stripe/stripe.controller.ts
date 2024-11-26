@@ -20,7 +20,7 @@ import { TransactionService } from 'src/transactions/transactions.service';
 import { TransactionStatus } from 'src/enums/transaction.enum';
 import { UserService } from '../users/user.service';
 import { TicketService } from '../tickets/ticket.service';
-import { TicketStatus } from 'src/enums/ticket.enum';
+import { PaymentMethod, TicketStatus } from 'src/enums/ticket.enum';
 
 @ApiTags('stripe')
 @Controller('stripe')
@@ -37,13 +37,24 @@ export class StripeController {
   @ApiBearerAuth()
   async createBookingPayment(
     @UserDecorator() user: User,
-    @Body() body: { ticketId: string; hotelOwnerId: number; amount: number },
+    @Body()
+    body: {
+      ticketId: string;
+      hotelOwnerId: number;
+      hotelStripeAccountId?: string;
+      amount: number;
+      currency?: string;
+      paymentMethod?: PaymentMethod;
+    },
   ) {
     return this.stripeService.createBookingPaymentIntent({
       ticketId: body.ticketId,
       user,
       hotelOwnerId: body.hotelOwnerId,
+      hotelStripeAccountId: body.hotelStripeAccountId,
       amount: body.amount,
+      currency: body.currency,
+      paymentMethod: body.paymentMethod,
     });
   }
 
