@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { forwardRef, Module } from '@nestjs/common';
 import { TransactionService } from './transactions.service';
 import { TransactionController } from './transactions.controller';
 import { TypeOrmModule } from '@nestjs/typeorm';
@@ -14,7 +14,7 @@ import { JWT } from 'src/constants';
     TypeOrmModule.forFeature([Transaction]),
     PermissionsModule,
     LocalesModule,
-    UserModule,
+    forwardRef(() => UserModule),
     JwtModule.register({
       secret: JWT.secretAccess,
       signOptions: { expiresIn: JWT.expiresAccessToken },

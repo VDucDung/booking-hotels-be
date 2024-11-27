@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { ErrorHelper } from 'src/common/helpers';
 import { TransactionType } from 'src/enums/transaction.enum';
 import { TransactionService } from 'src/transactions/transactions.service';
@@ -11,6 +11,7 @@ import { UserService } from '../users/user.service';
 @Injectable()
 export class StripeService {
   private stripe: Stripe;
+  private readonly logger = new Logger(StripeService.name);
 
   constructor(
     private readonly transactionService: TransactionService,
@@ -48,49 +49,109 @@ export class StripeService {
     paymentMethod?: PaymentMethod;
     hotelStripeAccountId?: string;
   }): Promise<Stripe.PaymentIntent> {
-    let stripeAccountId;
-
-    if (!hotelStripeAccountId) {
-      if (!hotelOwnerId) {
-        ErrorHelper.BadRequestException(
-          'Require hotelOwnerId or hotelStripeAccountId',
-        );
-      }
-
-      const hotelOwner = await this.userService.getUserById(hotelOwnerId);
-
-      if (!hotelOwner || !hotelOwner.stripeAccountId) {
-        ErrorHelper.NotFoundException(
-          'Hotel owner does not have a connected Stripe account',
-        );
-      }
-
-      stripeAccountId = hotelOwner.stripeAccountId;
-    } else {
-      stripeAccountId = hotelStripeAccountId;
+    if (amount <= 0) {
+      throw new Error('Invalid payment amount');
     }
 
-    const paymentIntent = await this.stripe.paymentIntents.create({
-      amount,
-      currency,
-      transfer_group: `booking_${stripeAccountId}`,
-    });
+    const stripeAccountId =
+      hotelStripeAccountId ||
+      (await this.getHotelOwnerStripeAccount(hotelOwnerId));
 
-    const transfer = await this.stripe.transfers.create({
-      amount: amount, //Math.floor(amount * 0.9)
-      currency,
-      destination: stripeAccountId,
-      transfer_group: `booking_${stripeAccountId}`,
-    });
+    try {
+      const paymentIntent = await this.stripe.paymentIntents.create({
+        amount,
+        currency,
+        transfer_group: `booking_${stripeAccountId}`,
+      });
 
-    await this.ticketService.update(ticketId, user, {
-      amount,
-      paymentMethods: paymentMethod,
-      stripePaymentIntentId: paymentIntent.id,
-      stripeTransferId: transfer.id,
-    });
+      const transfer = await this.stripe.transfers.create({
+        amount, //Math.floor(amount * 0.9)
+        currency,
+        destination: stripeAccountId,
+        transfer_group: `booking_${stripeAccountId}`,
+      });
 
-    return paymentIntent;
+      await this.ticketService.update(ticketId, user, {
+        amount,
+        paymentMethods: paymentMethod,
+        stripePaymentIntentId: paymentIntent.id,
+        stripeTransferId: transfer.id,
+      });
+
+      this.logger.log(`Payment intent created for ticket ${ticketId}`);
+      return paymentIntent;
+    } catch (error) {
+      this.logger.error('Error creating booking payment intent', error);
+      throw new Error('Failed to create booking payment intent');
+    }
+  }
+
+  async processBookingPayment({
+    ticketId,
+    user,
+    hotelOwnerId,
+    amount,
+    currency = 'vnd',
+    hotelStripeAccountId,
+  }: {
+    ticketId: string;
+    user: User;
+    hotelOwnerId: number;
+    amount: number;
+    currency?: string;
+    hotelStripeAccountId?: string;
+  }): Promise<{
+    success: boolean;
+    message: string;
+    paymentMethod?: PaymentMethod;
+  }> {
+    try {
+      const userBalance = await this.userService.getUserBalance(user.id);
+
+      if (userBalance >= amount) {
+        await this.userService.deductBalance(user.id, amount);
+
+        await this.createBookingPaymentIntent({
+          ticketId,
+          user,
+          hotelOwnerId,
+          amount,
+          currency,
+          paymentMethod: PaymentMethod.WALLET,
+          hotelStripeAccountId,
+        });
+
+        return {
+          success: true,
+          message: 'Thanh toán thành công bằng số dư ví',
+          paymentMethod: PaymentMethod.WALLET,
+        };
+      } else {
+        return {
+          success: false,
+          message: 'Số dư không đủ. Vui lòng chọn phương thức thanh toán',
+        };
+      }
+    } catch (error) {
+      this.logger.error('Lỗi xử lý thanh toán', error);
+      throw new Error('Không thể xử lý thanh toán');
+    }
+  }
+
+  private async getHotelOwnerStripeAccount(
+    hotelOwnerId: number,
+  ): Promise<string> {
+    if (!hotelOwnerId) {
+      throw new Error('Hotel owner ID is required');
+    }
+
+    const hotelOwner = await this.userService.getUserById(hotelOwnerId);
+
+    if (!hotelOwner || !hotelOwner.stripeAccountId) {
+      throw new Error('Hotel owner does not have a connected Stripe account');
+    }
+
+    return hotelOwner.stripeAccountId;
   }
   async createConnectedAccount(user: User) {
     try {
@@ -327,7 +388,7 @@ export class StripeService {
     transferGroup: string;
   }) {
     try {
-      const platformFee = Math.floor(amount * 0.1);
+      const platformFee = amount; // Math.floor(amount * 0.1)
       const transferAmount = amount - platformFee;
 
       const transfer = await this.stripe.transfers.create({
@@ -350,10 +411,12 @@ export class StripeService {
     userId: number;
     amount: number;
   }): Promise<Stripe.Checkout.Session> {
+    if (!userId) {
+      throw new Error('User ID is required');
+    }
+
     if (!amount || amount < 12000) {
-      ErrorHelper.BadRequestException(
-        'Số tiền không hợp lệ. Số tiền tối thiểu là ₫12,000.',
-      );
+      throw new Error('Invalid amount. Minimum deposit is ₫12,000.');
     }
 
     try {
@@ -384,11 +447,11 @@ export class StripeService {
         stripeSessionId: session.id,
       });
 
+      this.logger.log(`Checkout session created for user ${userId}`);
       return session;
     } catch (error) {
-      ErrorHelper.InternalServerErrorException(
-        'Không thể tạo phiên thanh toán. Vui lòng thử lại.',
-      );
+      this.logger.error('Error creating checkout session', error);
+      throw new Error('Failed to create payment session');
     }
   }
 }

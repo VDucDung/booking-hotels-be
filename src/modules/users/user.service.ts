@@ -24,6 +24,8 @@ import { Role } from '../roles/entities/role.entity';
 import { UploadService } from '../uploads/upload.service';
 import { AuthProviderService } from '../auth_provider/authProvider.service';
 import { StripeAccountStatus } from 'src/interfaces/stripe.interface';
+import { TransactionService } from 'src/transactions/transactions.service';
+import { TransactionType } from 'src/enums/transaction.enum';
 
 @Injectable()
 export class UserService {
@@ -35,6 +37,7 @@ export class UserService {
     private localesService: LocalesService,
     private readonly uploadService: UploadService,
     private readonly authProviderService: AuthProviderService,
+    private readonly transactionService: TransactionService,
   ) {}
 
   async getUserByEmail(email: string): Promise<User | undefined> {
@@ -288,6 +291,58 @@ export class UserService {
       ErrorHelper.InternalServerErrorException(
         'Failed to remove Stripe account information',
       );
+    }
+  }
+
+  async getUserBalance(userId: number): Promise<number> {
+    const user = await this.userRepository.findOne({
+      where: { id: userId },
+      select: ['balance'],
+    });
+
+    if (!user) {
+      ErrorHelper.BadRequestException('Người dùng không tồn tại');
+    }
+
+    return user.balance || 0;
+  }
+
+  async deductBalance(userId: number, amount: number): Promise<void> {
+    const currentBalance = await this.getUserBalance(userId);
+
+    if (currentBalance < amount) {
+      ErrorHelper.BadRequestException('Số dư không đủ để thực hiện giao dịch');
+    }
+
+    const queryRunner =
+      this.userRepository.manager.connection.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
+
+    try {
+      await queryRunner.manager.decrement(
+        User,
+        { id: userId },
+        'balance',
+        amount,
+      );
+
+      const transaction = this.transactionService.createTransaction({
+        userId,
+        amount,
+        type: TransactionType.WITHDRAW,
+      });
+
+      await queryRunner.manager.save(transaction);
+
+      await queryRunner.commitTransaction();
+    } catch (error) {
+      await queryRunner.rollbackTransaction();
+      ErrorHelper.BadRequestException(
+        'Không thể thực hiện giao dịch: ' + error.message,
+      );
+    } finally {
+      await queryRunner.release();
     }
   }
 

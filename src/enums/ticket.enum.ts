@@ -7,4 +7,5 @@ export enum TicketStatus {
 export enum PaymentMethod {
   CASH = 'cash',
   BANK_CARD = 'bank card',
+  WALLET = 'wallet',
 }

@@ -12,12 +12,14 @@ import { JWT } from 'src/constants';
 import { Role } from '../roles/entities/role.entity';
 import { UploadModule } from '../uploads/upload.module';
 import { AuthProviderModule } from '../auth_provider/authProvider.module';
+import { TransactionsModule } from 'src/transactions/transactions.module';
 
 @Module({
   imports: [
     LocalesModule,
     EmailModule,
     UploadModule,
+    forwardRef(() => TransactionsModule),
     forwardRef(() => PermissionsModule),
     TypeOrmModule.forFeature([User]),
     TypeOrmModule.forFeature([Role]),

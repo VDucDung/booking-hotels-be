@@ -7,6 +7,7 @@ import {
   Headers,
   Get,
   Delete,
+  Logger,
 } from '@nestjs/common';
 import { StripeService } from './stripe.service';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
@@ -20,11 +21,13 @@ import { TransactionService } from 'src/transactions/transactions.service';
 import { TransactionStatus } from 'src/enums/transaction.enum';
 import { UserService } from '../users/user.service';
 import { TicketService } from '../tickets/ticket.service';
-import { PaymentMethod, TicketStatus } from 'src/enums/ticket.enum';
+import { TicketStatus } from 'src/enums/ticket.enum';
+import { CreateBookingPaymentDto } from './dto/create-booking-payment';
 
 @ApiTags('stripe')
 @Controller('stripe')
 export class StripeController {
+  private readonly logger = new Logger(StripeController.name);
   constructor(
     private readonly stripeService: StripeService,
     private readonly transactionService: TransactionService,
@@ -37,25 +40,44 @@ export class StripeController {
   @ApiBearerAuth()
   async createBookingPayment(
     @UserDecorator() user: User,
-    @Body()
-    body: {
-      ticketId: string;
-      hotelOwnerId: number;
-      hotelStripeAccountId?: string;
-      amount: number;
-      currency?: string;
-      paymentMethod?: PaymentMethod;
-    },
+    @Body() body: CreateBookingPaymentDto,
   ) {
-    return this.stripeService.createBookingPaymentIntent({
-      ticketId: body.ticketId,
-      user,
-      hotelOwnerId: body.hotelOwnerId,
-      hotelStripeAccountId: body.hotelStripeAccountId,
-      amount: body.amount,
-      currency: body.currency,
-      paymentMethod: body.paymentMethod,
-    });
+    try {
+      return await this.stripeService.createBookingPaymentIntent({
+        ticketId: body.ticketId,
+        user,
+        hotelOwnerId: body.hotelOwnerId,
+        hotelStripeAccountId: body.hotelStripeAccountId,
+        amount: body.amount,
+        currency: body.currency,
+        paymentMethod: body.paymentMethod,
+      });
+    } catch (error) {
+      this.logger.error('Booking payment creation failed', error);
+      throw error;
+    }
+  }
+
+  @Post('/process-booking-payment')
+  @UseGuards(AuthGuard)
+  @ApiBearerAuth()
+  async processBookingPayment(
+    @UserDecorator() user: User,
+    @Body() body: CreateBookingPaymentDto,
+  ) {
+    try {
+      return await this.stripeService.processBookingPayment({
+        ticketId: body.ticketId,
+        user,
+        hotelOwnerId: body.hotelOwnerId,
+        hotelStripeAccountId: body.hotelStripeAccountId,
+        amount: body.amount,
+        currency: body.currency,
+      });
+    } catch (error) {
+      this.logger.error('Booking payment creation failed', error);
+      throw error;
+    }
   }
 
   @Post('/create-stripe-account')
@@ -123,64 +145,81 @@ export class StripeController {
   ) {
     const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET;
 
+    if (!endpointSecret) {
+      this.logger.error('Stripe webhook secret is not configured');
+      throw new Error('Webhook configuration missing');
+    }
+
     let event: Stripe.Event;
 
     try {
       event = this.stripeService.constructEvent(req.body, sig, endpointSecret);
     } catch (error) {
-      ErrorHelper.InternalServerErrorException(
-        'Webhook signature verification failed.',
-      );
+      this.logger.error('Webhook event verification failed', error);
+      throw error;
     }
 
-    switch (event.type) {
-      case 'payment_intent.succeeded':
-        const paymentIntent = event.data.object as Stripe.PaymentIntent;
-        await this.transactionService.updateTransactionStatus(
-          paymentIntent.id,
-          TransactionStatus.SUCCESS,
-        );
-        await this.ticketService.updateTicketStatus(
-          paymentIntent.id,
-          TicketStatus.PAID,
-        );
-        console.log(`PaymentIntent succeeded: ${paymentIntent.id}`);
-        break;
+    try {
+      switch (event.type) {
+        case 'payment_intent.succeeded':
+          await this.handlePaymentIntentSucceeded(event);
+          break;
 
-      case 'checkout.session.completed':
-        const session = event.data.object as Stripe.Checkout.Session;
-        const userId = session.client_reference_id;
+        case 'checkout.session.completed':
+          await this.handleCheckoutSessionCompleted(event);
+          break;
 
-        const user = await this.userService.getUserById(+userId);
+        default:
+          this.logger.log(`Unhandled event type: ${event.type}`);
+      }
 
-        if (!user) {
-          ErrorHelper.NotFoundException('User not found');
-        }
+      return { received: true };
+    } catch (error) {
+      this.logger.error(`Error processing webhook event ${event.type}`, error);
+      throw error;
+    }
+  }
 
-        const newBalance = (user.balance || 0) + session.amount_total;
+  private async handlePaymentIntentSucceeded(event: Stripe.Event) {
+    const paymentIntent = event.data.object as Stripe.PaymentIntent;
 
-        await this.userService.updateUserById(+userId, {
-          balance: newBalance,
-        });
+    await this.transactionService.updateTransactionStatus(
+      paymentIntent.id,
+      TransactionStatus.SUCCESS,
+    );
 
-        await this.transactionService.updateTransactionStatus(
-          session.id,
-          TransactionStatus.SUCCESS,
-        );
+    await this.ticketService.updateTicketStatus(
+      paymentIntent.id,
+      TicketStatus.PAID,
+    );
 
-        await this.ticketService.updateTicketStatus(
-          session.id,
-          TicketStatus.PAID,
-        );
+    this.logger.log(`PaymentIntent succeeded: ${paymentIntent.id}`);
+  }
 
-        console.log(`Checkout Session completed: ${session.id}`);
-        break;
+  private async handleCheckoutSessionCompleted(event: Stripe.Event) {
+    const session = event.data.object as Stripe.Checkout.Session;
+    const userId = session.client_reference_id;
 
-      default:
-        console.log(`Unhandled event type: ${event.type}`);
-        break;
+    const user = await this.userService.getUserById(+userId);
+
+    if (!user) {
+      this.logger.error(`User not found for session: ${session.id}`);
+      throw new Error('User not found');
     }
 
-    return { received: true };
+    const newBalance = (user.balance || 0) + (session.amount_total || 0);
+
+    await this.userService.updateUserById(+userId, {
+      balance: newBalance,
+    });
+
+    await this.transactionService.updateTransactionStatus(
+      session.id,
+      TransactionStatus.SUCCESS,
+    );
+
+    await this.ticketService.updateTicketStatus(session.id, TicketStatus.PAID);
+
+    this.logger.log(`Checkout Session completed: ${session.id}`);
   }
 }
