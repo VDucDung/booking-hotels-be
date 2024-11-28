@@ -8,6 +8,7 @@ import {
   Get,
   Delete,
   Logger,
+  HttpStatus,
 } from '@nestjs/common';
 import { StripeService } from './stripe.service';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
@@ -66,17 +67,20 @@ export class StripeController {
     @Body() body: CreateBookingPaymentDto,
   ) {
     try {
-      return await this.stripeService.processBookingPayment({
+      const result = await this.stripeService.processBookingPayment({
         ticketId: body.ticketId,
         user,
         hotelOwnerId: body.hotelOwnerId,
-        hotelStripeAccountId: body.hotelStripeAccountId,
         amount: body.amount,
         currency: body.currency,
       });
+
+      return {
+        statusCode: result.success ? HttpStatus.OK : HttpStatus.BAD_REQUEST,
+        ...result,
+      };
     } catch (error) {
-      this.logger.error('Booking payment creation failed', error);
-      throw error;
+      this.logger.error('Booking payment processing failed', error);
     }
   }
 

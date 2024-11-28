@@ -67,6 +67,7 @@ export class TransactionService {
     type: TransactionType;
     stripeSessionId?: string;
     stripePaymentIntentId?: string;
+    ticketId?: string;
   }) {
     const transaction = this.transactionsRepository.create({
       ...data,

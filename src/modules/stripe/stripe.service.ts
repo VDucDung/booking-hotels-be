@@ -7,6 +7,10 @@ import { TicketService } from '../tickets/ticket.service';
 import { User } from '../users/entities/user.entity';
 import { PaymentMethod } from 'src/enums/ticket.enum';
 import { UserService } from '../users/user.service';
+import {
+  PaymentResult,
+  ProcessBookingPaymentParams,
+} from 'src/interfaces/booking.interface';
 
 @Injectable()
 export class StripeService {
@@ -93,25 +97,18 @@ export class StripeService {
     amount,
     currency = 'vnd',
     hotelStripeAccountId,
-  }: {
-    ticketId: string;
-    user: User;
-    hotelOwnerId: number;
-    amount: number;
-    currency?: string;
-    hotelStripeAccountId?: string;
-  }): Promise<{
-    success: boolean;
-    message: string;
-    paymentMethod?: PaymentMethod;
-  }> {
+  }: ProcessBookingPaymentParams): Promise<PaymentResult> {
+    if (!ticketId || !user || !hotelOwnerId || amount <= 0) {
+      throw new Error('Invalid payment parameters');
+    }
+
     try {
       const userBalance = await this.userService.getUserBalance(user.id);
 
       if (userBalance >= amount) {
         await this.userService.deductBalance(user.id, amount);
 
-        await this.createBookingPaymentIntent({
+        const paymentIntent = await this.createBookingPaymentIntent({
           ticketId,
           user,
           hotelOwnerId,
@@ -121,20 +118,34 @@ export class StripeService {
           hotelStripeAccountId,
         });
 
+        this.transactionService.createTransaction({
+          userId: user.id,
+          amount: -amount,
+          type: TransactionType.WITHDRAW,
+          ticketId,
+        });
+
         return {
           success: true,
-          message: 'Thanh toán thành công bằng số dư ví',
+          message: 'Payment processed successfully',
           paymentMethod: PaymentMethod.WALLET,
+          transactionId: paymentIntent.id,
         };
       } else {
         return {
           success: false,
-          message: 'Số dư không đủ. Vui lòng chọn phương thức thanh toán',
+          message: 'Insufficient balance. Please choose another payment method',
         };
       }
     } catch (error) {
-      this.logger.error('Lỗi xử lý thanh toán', error);
-      throw new Error('Không thể xử lý thanh toán');
+      this.logger.error('Payment processing error', {
+        userId: user.id,
+        ticketId,
+        amount,
+        error: error.message,
+      });
+
+      throw new Error('Payment processing failed');
     }
   }
 

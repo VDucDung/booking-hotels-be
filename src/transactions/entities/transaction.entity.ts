@@ -44,6 +44,9 @@ export class Transaction {
   @Column()
   userId: number;
 
+  @Column({ nullable: true })
+  ticketId: string;
+
   @CreateDateColumn()
   createdAt: Date;
 
