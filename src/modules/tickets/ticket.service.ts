@@ -170,13 +170,14 @@ export class TicketService {
   async findOne(id: string): Promise<Ticket> {
     const ticket = await this.ticketRepository.findOne({
       where: { id },
-      relations: ['user', 'room'],
+      relations: ['user', 'room', 'room.partner'],
     });
     if (!ticket) {
       ErrorHelper.NotFoundException(
         this.localesService.translate(TICKET_MESSAGE.TICKET_NOT_FOUND),
       );
     }
+
     return ticket;
   }
 
