@@ -346,6 +346,34 @@ export class UserService {
     }
   }
 
+  async decreaseBalance(userId: number, amount: number): Promise<void> {
+    const user = await this.getUserById(userId);
+
+    if (!user) {
+      throw new Error(`User with ID ${userId} not found`);
+    }
+
+    if (user.balance < amount) {
+      throw new Error(`Insufficient balance for user ID ${userId}`);
+    }
+
+    user.balance -= amount;
+
+    await this.userRepository.save(user);
+  }
+
+  async increaseBalance(userId: number, amount: number): Promise<void> {
+    const user = await this.getUserById(userId);
+
+    if (!user) {
+      throw new Error(`User with ID ${userId} not found`);
+    }
+
+    user.balance += amount;
+
+    await this.userRepository.save(user);
+  }
+
   async changePassword(
     userId: number,
     changePasswordDto: ChangePasswordDto,

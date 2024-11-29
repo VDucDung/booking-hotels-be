@@ -61,25 +61,43 @@ export class StripeService {
       hotelStripeAccountId ||
       (await this.getHotelOwnerStripeAccount(hotelOwnerId));
 
+    if (!stripeAccountId) {
+      throw new Error('Hotel Stripe account not found');
+    }
+
     try {
+      if (!user.stripeCustomerId) {
+        const customer = await this.stripe.customers.create({
+          name: user.fullname,
+          email: user.email,
+        });
+
+        user.stripeCustomerId = customer.id;
+        await this.userService.updateUserById(user.id, {
+          stripeCustomerId: user.stripeCustomerId,
+        });
+      }
+
       const paymentIntent = await this.stripe.paymentIntents.create({
         amount,
         currency,
+        customer: user.stripeCustomerId,
+        transfer_data: { destination: stripeAccountId },
         transfer_group: `booking_${stripeAccountId}`,
       });
 
-      // const transfer = await this.stripe.transfers.create({
-      //   amount, //Math.floor(amount * 0.9)
-      //   currency,
-      //   destination: stripeAccountId,
-      //   transfer_group: `booking_${stripeAccountId}`,
-      // });
+      await this.transactionService.createTransaction({
+        userId: user.id,
+        amount,
+        type: TransactionType.WITHDRAW,
+        ticketId,
+        stripePaymentIntentId: paymentIntent.id,
+      });
 
       await this.ticketService.update(ticketId, user, {
         amount,
         paymentMethods: paymentMethod,
         stripePaymentIntentId: paymentIntent.id,
-        // stripeTransferId: transfer.id,
       });
 
       this.logger.log(`Payment intent created for ticket ${ticketId}`);
@@ -465,40 +483,4 @@ export class StripeService {
       throw new Error('Failed to create payment session');
     }
   }
-
-  // async createPaymentIntent({
-  //   userId,
-  //   amount,
-  // }: {
-  //   userId: number;
-  //   amount: number;
-  // }): Promise<Stripe.Checkout.Session> {
-  //   if (!userId) {
-  //     throw new Error('User ID is required');
-  //   }
-
-  //   if (!amount || amount < 12000) {
-  //     throw new Error('Invalid amount. Minimum deposit is ₫12,000.');
-  //   }
-
-  //   try {
-  //     const paymentIntent = await this.stripe.paymentIntents.create({
-  //       amount: amount * 100,
-  //       currency: 'vnd',
-  //       metadata: { bookingId },
-  //     });
-
-  //     await this.transactionService.createTransaction({
-  //       userId,
-  //       amount,
-  //       type: TransactionType.DEPOSIT,
-  //       stripeSessionId: session.id,
-  //     });
-
-  //     return paymentIntent.client_secret;
-  //   } catch (error) {
-  //     this.logger.error('Error creating checkout session', error);
-  //     throw new Error('Failed to create payment session');
-  //   }
-  // }
 }

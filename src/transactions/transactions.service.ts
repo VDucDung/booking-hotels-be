@@ -93,6 +93,22 @@ export class TransactionService {
     return await this.transactionsRepository.save(transaction);
   }
 
+  async updatePaymentTransactionStatus(
+    stripePaymentIntentId: string,
+    status: TransactionStatus,
+  ) {
+    const transaction = await this.transactionsRepository.findOne({
+      where: { stripePaymentIntentId },
+    });
+
+    if (!transaction) {
+      ErrorHelper.NotFoundException('Transaction not found');
+    }
+
+    transaction.status = status;
+    return await this.transactionsRepository.save(transaction);
+  }
+
   async handleSuccessfulPayment(session: any) {
     const transaction = await this.transactionsRepository.findOne({
       where: { stripeSessionId: session.id },

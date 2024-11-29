@@ -8,7 +8,6 @@ import {
   Get,
   Delete,
   Logger,
-  HttpStatus,
 } from '@nestjs/common';
 import { StripeService } from './stripe.service';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
@@ -59,30 +58,30 @@ export class StripeController {
     }
   }
 
-  @Post('/process-booking-payment')
-  @UseGuards(AuthGuard)
-  @ApiBearerAuth()
-  async processBookingPayment(
-    @UserDecorator() user: User,
-    @Body() body: CreateBookingPaymentDto,
-  ) {
-    try {
-      const result = await this.stripeService.processBookingPayment({
-        ticketId: body.ticketId,
-        user,
-        hotelOwnerId: body.hotelOwnerId,
-        amount: body.amount,
-        currency: body.currency,
-      });
+  // @Post('/process-booking-payment')
+  // @UseGuards(AuthGuard)
+  // @ApiBearerAuth()
+  // async processBookingPayment(
+  //   @UserDecorator() user: User,
+  //   @Body() body: CreateBookingPaymentDto,
+  // ) {
+  //   try {
+  //     const result = await this.stripeService.processBookingPayment({
+  //       ticketId: body.ticketId,
+  //       user,
+  //       hotelOwnerId: body.hotelOwnerId,
+  //       amount: body.amount,
+  //       currency: body.currency,
+  //     });
 
-      return {
-        statusCode: result.success ? HttpStatus.OK : HttpStatus.BAD_REQUEST,
-        ...result,
-      };
-    } catch (error) {
-      this.logger.error('Booking payment processing failed', error);
-    }
-  }
+  //     return {
+  //       statusCode: result.success ? HttpStatus.OK : HttpStatus.BAD_REQUEST,
+  //       ...result,
+  //     };
+  //   } catch (error) {
+  //     this.logger.error('Booking payment processing failed', error);
+  //   }
+  // }
 
   @Post('/create-stripe-account')
   @UseGuards(AuthGuard)
@@ -187,17 +186,40 @@ export class StripeController {
   private async handlePaymentIntentSucceeded(event: Stripe.Event) {
     const paymentIntent = event.data.object as Stripe.PaymentIntent;
 
-    await this.transactionService.updateTransactionStatus(
-      paymentIntent.id,
-      TransactionStatus.SUCCESS,
-    );
+    const { amount, customer, transfer_data } = paymentIntent;
 
-    await this.ticketService.updateTicketStatus(
-      paymentIntent.id,
-      TicketStatus.PAID,
-    );
+    if (!transfer_data || !transfer_data.destination) {
+      this.logger.error(
+        `Invalid transfer data in payment intent: ${paymentIntent.id}`,
+      );
+      throw new Error('Invalid transfer data.');
+    }
 
-    this.logger.log(`PaymentIntent succeeded: ${paymentIntent.id}`);
+    const senderId = +customer;
+    const receiverId = +transfer_data.destination;
+    try {
+      await this.transactionService.updatePaymentTransactionStatus(
+        paymentIntent.id,
+        TransactionStatus.SUCCESS,
+      );
+
+      await this.ticketService.updateTicketStatus(
+        paymentIntent.id,
+        TicketStatus.PAID,
+      );
+
+      await this.userService.decreaseBalance(senderId, amount);
+
+      await this.userService.increaseBalance(receiverId, amount);
+
+      this.logger.log(`PaymentIntent succeeded: ${paymentIntent.id}`);
+    } catch (error) {
+      this.logger.error(
+        `Error handling payment intent ${paymentIntent.id}:`,
+        error,
+      );
+      throw new Error(`Failed to process payment intent ${paymentIntent.id}`);
+    }
   }
 
   private async handleCheckoutSessionCompleted(event: Stripe.Event) {

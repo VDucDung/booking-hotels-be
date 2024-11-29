@@ -167,4 +167,8 @@ export class UpdateUserDto {
   @IsOptional()
   @IsString()
   stripeAccountId?: string;
+
+  @IsOptional()
+  @IsString()
+  stripeCustomerId?: string;
 }

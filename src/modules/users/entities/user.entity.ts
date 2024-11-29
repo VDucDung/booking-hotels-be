@@ -104,6 +104,9 @@ export class User {
   @Column({ nullable: true })
   stripeAccountId: string;
 
+  @Column({ nullable: true })
+  stripeCustomerId: string;
+
   @Column({ type: 'jsonb', nullable: true })
   stripeAccountStatus: {
     chargesEnabled: boolean;
