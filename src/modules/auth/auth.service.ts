@@ -50,7 +50,7 @@ export class AuthService {
     const { email, password } = loginDto;
     const user = await this.userService.findOne({
       where: { email },
-      relations: ['authProviders'],
+      relations: ['authProviders', 'role'],
     });
 
     if (!user || !(await user.isPasswordMatch(password))) {
@@ -101,7 +101,7 @@ export class AuthService {
   ): Promise<any> {
     const user = await this.userService.findOne({
       where: { email },
-      relations: ['authProviders'],
+      relations: ['authProviders', 'role'],
     });
 
     if (user) {
