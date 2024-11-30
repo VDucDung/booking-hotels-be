@@ -10,6 +10,7 @@ import {
   PaymentResult,
   ProcessBookingPaymentParams,
 } from 'src/interfaces/booking.interface';
+import { TicketStatus } from 'src/enums/ticket.enum';
 
 @Injectable()
 export class StripeService {
@@ -111,58 +112,44 @@ export class StripeService {
     ticketId,
     user,
     hotelOwnerId,
-    amount,
-    currency = 'vnd',
     paymentMethod,
-    hotelStripeAccountId,
   }: ProcessBookingPaymentParams): Promise<PaymentResult> {
-    if (!ticketId || !user || !hotelOwnerId || amount <= 0) {
+    if (!ticketId || !user || !hotelOwnerId) {
       throw new Error('Invalid payment parameters');
     }
+    const userBalance = await this.userService.getUserBalance(user.id);
 
-    try {
-      const userBalance = await this.userService.getUserBalance(user.id);
+    const partner = await this.userService.findOne({
+      where: { id: hotelOwnerId },
+    });
+    const ticket = await this.ticketService.findOne(ticketId);
 
-      if (userBalance >= amount) {
-        await this.userService.deductBalance(user.id, amount);
+    if (userBalance >= ticket.amount) {
+      await this.userService.decreaseBalance(user.id, ticket.amount);
 
-        const paymentIntent = await this.createBookingPaymentIntent({
-          ticketId,
-          user,
-          hotelOwnerId,
-          amount,
-          currency,
-          paymentMethod,
-          hotelStripeAccountId,
-        });
+      await this.userService.increaseBalance(partner.id, ticket.amount);
 
-        this.transactionService.createTransaction({
-          userId: user.id,
-          amount: -amount,
-          type: TransactionType.WITHDRAW,
-          ticketId,
-        });
-
-        return {
-          success: true,
-          message: 'Payment processed successfully',
-          transactionId: paymentIntent.id,
-        };
-      } else {
-        return {
-          success: false,
-          message: 'Insufficient balance. Please choose another payment method',
-        };
-      }
-    } catch (error) {
-      this.logger.error('Payment processing error', {
-        userId: user.id,
-        ticketId,
-        amount,
-        error: error.message,
+      await this.ticketService.update(ticket.id, user, {
+        status: TicketStatus.PAID,
+        paymentMethods: paymentMethod,
       });
 
-      throw new Error('Payment processing failed');
+      await this.transactionService.createTransaction({
+        userId: user.id,
+        amount: ticket.amount,
+        type: paymentMethod,
+        ticketId,
+      });
+
+      return {
+        success: true,
+        message: 'Payment processed successfully',
+      };
+    } else {
+      return {
+        success: false,
+        message: 'Insufficient balance. Please choose another payment method',
+      };
     }
   }
 

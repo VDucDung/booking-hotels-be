@@ -93,6 +93,22 @@ export class TicketService {
     return this.ticketRepository.save(ticket);
   }
 
+  async updateTicketStatusById(
+    ticketId: string,
+    status: TicketStatus,
+  ): Promise<Ticket> {
+    const ticket = await this.ticketRepository.findOne({
+      where: { id: ticketId },
+    });
+
+    if (!ticket) {
+      ErrorHelper.NotFoundException('Ticket not found');
+    }
+
+    ticket.status = status;
+    return this.ticketRepository.save(ticket);
+  }
+
   async handleSuccessfulBookingPayment(session: any) {
     const ticket = await this.ticketRepository.findOne({
       where: { stripePaymentIntentId: session.payment_intent },
@@ -190,7 +206,6 @@ export class TicketService {
         this.localesService.translate(TICKET_MESSAGE.TICKET_NOT_FOUND),
       );
     }
-
     return ticket;
   }
 
@@ -223,7 +238,6 @@ export class TicketService {
         updateTicketDto.checkOutDate,
       ).toISOString();
     }
-
     const updatedTicket = await this.ticketRepository.preload({
       id: ticket.id,
       ...updateTicketDto,

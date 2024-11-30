@@ -17,7 +17,8 @@ export class CreateBookingPaymentDto {
 
   @IsNotEmpty()
   @IsNumber()
-  amount: number;
+  @IsOptional()
+  amount?: number;
 
   @IsNotEmpty()
   @IsString()

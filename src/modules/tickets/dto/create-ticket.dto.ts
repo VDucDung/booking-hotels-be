@@ -46,7 +46,7 @@ export class CreateTicketDto {
   checkOutTime: string;
 
   @IsOptional()
-  @IsEnum(['cash', 'bank card'])
+  @IsEnum(['cash', 'bank card', 'wallet'])
   paymentMethods: string;
 
   @IsOptional()

@@ -8,6 +8,7 @@ import {
   Get,
   Delete,
   Logger,
+  HttpStatus,
 } from '@nestjs/common';
 import { StripeService } from './stripe.service';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
@@ -21,7 +22,7 @@ import { TransactionService } from 'src/transactions/transactions.service';
 import { TransactionStatus } from 'src/enums/transaction.enum';
 import { UserService } from '../users/user.service';
 import { TicketService } from '../tickets/ticket.service';
-import { PaymentMethod, TicketStatus } from 'src/enums/ticket.enum';
+import { TicketStatus } from 'src/enums/ticket.enum';
 import { CreateBookingPaymentDto } from './dto/create-booking-payment';
 
 @ApiTags('stripe')
@@ -58,30 +59,25 @@ export class StripeController {
     }
   }
 
-  // @Post('/process-booking-payment')
-  // @UseGuards(AuthGuard)
-  // @ApiBearerAuth()
-  // async processBookingPayment(
-  //   @UserDecorator() user: User,
-  //   @Body() body: CreateBookingPaymentDto,
-  // ) {
-  //   try {
-  //     const result = await this.stripeService.processBookingPayment({
-  //       ticketId: body.ticketId,
-  //       user,
-  //       hotelOwnerId: body.hotelOwnerId,
-  //       amount: body.amount,
-  //       currency: body.currency,
-  //     });
+  @Post('/process-booking-payment')
+  @UseGuards(AuthGuard)
+  @ApiBearerAuth()
+  async processBookingPayment(
+    @UserDecorator() user: User,
+    @Body() body: CreateBookingPaymentDto,
+  ) {
+    const result = await this.stripeService.processBookingPayment({
+      ticketId: body.ticketId,
+      user,
+      hotelOwnerId: body.hotelOwnerId,
+      paymentMethod: body.paymentMethod,
+    });
 
-  //     return {
-  //       statusCode: result.success ? HttpStatus.OK : HttpStatus.BAD_REQUEST,
-  //       ...result,
-  //     };
-  //   } catch (error) {
-  //     this.logger.error('Booking payment processing failed', error);
-  //   }
-  // }
+    return {
+      statusCode: result.success ? HttpStatus.CREATED : HttpStatus.BAD_REQUEST,
+      message: result.message,
+    };
+  }
 
   @Post('/create-stripe-account')
   @UseGuards(AuthGuard)
@@ -186,7 +182,7 @@ export class StripeController {
   private async handlePaymentIntentSucceeded(event: Stripe.Event) {
     const paymentIntent = event.data.object as Stripe.PaymentIntent;
 
-    const { amount, customer, transfer_data } = paymentIntent;
+    const { transfer_data } = paymentIntent;
 
     if (!transfer_data || !transfer_data.destination) {
       this.logger.error(
@@ -195,8 +191,6 @@ export class StripeController {
       throw new Error('Invalid transfer data.');
     }
 
-    const senderId = +customer;
-    const receiverId = transfer_data.destination;
     try {
       await this.transactionService.updatePaymentTransactionStatus(
         paymentIntent.id,
@@ -207,19 +201,6 @@ export class StripeController {
         paymentIntent.id,
         TicketStatus.PAID,
       );
-      const user = await this.userService.findOne({
-        where: { stripeAccountId: receiverId },
-      });
-
-      const ticket = await this.ticketService.findByPaymentIntentId(
-        paymentIntent.id,
-      );
-
-      if (ticket.paymentMethods === PaymentMethod.WALLET) {
-        await this.userService.decreaseBalance(senderId, amount);
-
-        await this.userService.increaseBalance(user.id, amount);
-      }
 
       this.logger.log(`PaymentIntent succeeded: ${paymentIntent.id}`);
     } catch (error) {
