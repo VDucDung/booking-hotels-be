@@ -1,5 +1,5 @@
 import { IsNotEmpty, IsNumber, IsOptional, IsString } from 'class-validator';
-import { PaymentMethod } from 'src/enums/ticket.enum';
+import { TransactionType } from 'src/enums/transaction.enum';
 
 export class CreateBookingPaymentDto {
   @IsNotEmpty()
@@ -25,6 +25,5 @@ export class CreateBookingPaymentDto {
   currency?: string;
 
   @IsNotEmpty()
-  @IsOptional()
-  paymentMethod?: PaymentMethod;
+  paymentMethod: TransactionType;
 }

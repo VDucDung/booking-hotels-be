@@ -78,11 +78,11 @@ export class TicketService {
   }
 
   async updateTicketStatus(
-    ticketId: string,
+    paymentIntentId: string,
     status: TicketStatus,
   ): Promise<Ticket> {
     const ticket = await this.ticketRepository.findOne({
-      where: { id: ticketId },
+      where: { stripePaymentIntentId: paymentIntentId },
     });
 
     if (!ticket) {
@@ -158,6 +158,19 @@ export class TicketService {
       },
     });
 
+    if (!ticket) {
+      ErrorHelper.NotFoundException(
+        this.localesService.translate(TICKET_MESSAGE.TICKET_NOT_FOUND),
+      );
+    }
+
+    return ticket;
+  }
+
+  async findByPaymentIntentId(stripePaymentIntentId: string): Promise<Ticket> {
+    const ticket = await this.ticketRepository.findOne({
+      where: { stripePaymentIntentId },
+    });
     if (!ticket) {
       ErrorHelper.NotFoundException(
         this.localesService.translate(TICKET_MESSAGE.TICKET_NOT_FOUND),

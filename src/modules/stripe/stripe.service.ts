@@ -5,7 +5,6 @@ import { TransactionService } from 'src/transactions/transactions.service';
 import Stripe from 'stripe';
 import { TicketService } from '../tickets/ticket.service';
 import { User } from '../users/entities/user.entity';
-import { PaymentMethod } from 'src/enums/ticket.enum';
 import { UserService } from '../users/user.service';
 import {
   PaymentResult,
@@ -42,7 +41,7 @@ export class StripeService {
     hotelOwnerId,
     amount,
     currency = 'vnd',
-    paymentMethod = PaymentMethod.BANK_CARD,
+    paymentMethod,
     hotelStripeAccountId,
   }: {
     ticketId: string;
@@ -50,7 +49,7 @@ export class StripeService {
     hotelOwnerId: number;
     amount: number;
     currency?: string;
-    paymentMethod?: PaymentMethod;
+    paymentMethod: TransactionType;
     hotelStripeAccountId?: string;
   }): Promise<Stripe.PaymentIntent> {
     if (amount <= 0) {
@@ -89,7 +88,7 @@ export class StripeService {
       await this.transactionService.createTransaction({
         userId: user.id,
         amount,
-        type: TransactionType.WITHDRAW,
+        type: paymentMethod,
         ticketId,
         stripePaymentIntentId: paymentIntent.id,
       });
@@ -114,6 +113,7 @@ export class StripeService {
     hotelOwnerId,
     amount,
     currency = 'vnd',
+    paymentMethod,
     hotelStripeAccountId,
   }: ProcessBookingPaymentParams): Promise<PaymentResult> {
     if (!ticketId || !user || !hotelOwnerId || amount <= 0) {
@@ -132,7 +132,7 @@ export class StripeService {
           hotelOwnerId,
           amount,
           currency,
-          paymentMethod: PaymentMethod.WALLET,
+          paymentMethod,
           hotelStripeAccountId,
         });
 
@@ -146,7 +146,6 @@ export class StripeService {
         return {
           success: true,
           message: 'Payment processed successfully',
-          paymentMethod: PaymentMethod.WALLET,
           transactionId: paymentIntent.id,
         };
       } else {

@@ -3,6 +3,9 @@ export enum TransactionType {
   WITHDRAW = 'WITHDRAW',
   PAYMENT = 'PAYMENT',
   REFUND = 'REFUND',
+  CASH = 'cash',
+  BANK_CARD = 'bank card',
+  WALLET = 'wallet',
 }
 
 export enum TransactionStatus {

@@ -21,7 +21,7 @@ import { TransactionService } from 'src/transactions/transactions.service';
 import { TransactionStatus } from 'src/enums/transaction.enum';
 import { UserService } from '../users/user.service';
 import { TicketService } from '../tickets/ticket.service';
-import { TicketStatus } from 'src/enums/ticket.enum';
+import { PaymentMethod, TicketStatus } from 'src/enums/ticket.enum';
 import { CreateBookingPaymentDto } from './dto/create-booking-payment';
 
 @ApiTags('stripe')
@@ -196,7 +196,7 @@ export class StripeController {
     }
 
     const senderId = +customer;
-    const receiverId = +transfer_data.destination;
+    const receiverId = transfer_data.destination;
     try {
       await this.transactionService.updatePaymentTransactionStatus(
         paymentIntent.id,
@@ -207,10 +207,19 @@ export class StripeController {
         paymentIntent.id,
         TicketStatus.PAID,
       );
+      const user = await this.userService.findOne({
+        where: { stripeAccountId: receiverId },
+      });
 
-      await this.userService.decreaseBalance(senderId, amount);
+      const ticket = await this.ticketService.findByPaymentIntentId(
+        paymentIntent.id,
+      );
 
-      await this.userService.increaseBalance(receiverId, amount);
+      if (ticket.paymentMethods === PaymentMethod.WALLET) {
+        await this.userService.decreaseBalance(senderId, amount);
+
+        await this.userService.increaseBalance(user.id, amount);
+      }
 
       this.logger.log(`PaymentIntent succeeded: ${paymentIntent.id}`);
     } catch (error) {
