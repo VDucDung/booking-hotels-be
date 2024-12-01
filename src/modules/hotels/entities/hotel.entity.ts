@@ -35,6 +35,9 @@ export class Hotel {
   @JoinColumn({ name: 'partner_id' })
   partner: User;
 
+  @Column({ nullable: false })
+  contactPhone: string;
+
   @OneToMany(() => Review, (review) => review.hotelId)
   reviews?: Review[];
 

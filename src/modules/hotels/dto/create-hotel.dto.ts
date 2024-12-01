@@ -1,6 +1,13 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsArray, IsNotEmpty, IsOptional } from 'class-validator';
+import {
+  IsArray,
+  IsNotEmpty,
+  IsOptional,
+  Matches,
+  MaxLength,
+} from 'class-validator';
 import { i18nValidationMessage } from 'nestjs-i18n';
+import { PHONE_VN_REGEX } from 'src/constants';
 import { COMMON_MESSAGE } from 'src/messages';
 import { Review } from 'src/modules/review/entities/review.entity';
 
@@ -24,6 +31,19 @@ export class CreateHotelDto {
     required: true,
   })
   address: string;
+
+  @MaxLength(30, {
+    message: i18nValidationMessage(COMMON_MESSAGE.MAX),
+  })
+  @Matches(PHONE_VN_REGEX, {
+    message: i18nValidationMessage(COMMON_MESSAGE.INVALID_PHONE),
+  })
+  @ApiProperty({
+    name: 'phone',
+    type: String,
+    required: true,
+  })
+  contactPhone: string;
 
   @IsOptional()
   @ApiProperty({

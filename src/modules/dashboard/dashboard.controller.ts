@@ -41,6 +41,7 @@ import { multerOptions } from '../uploads/options/multer.option';
 import { UpdateHotelDto } from '../hotels/dto/update-hotel.dto';
 import { CreateTypeRoomDto } from '../type_room/dto/create-type-room.dto';
 import { CreateRoomDto } from '../room/dto/create-room.dto';
+import { UpdateTicketDto } from '../tickets/dto/update-ticket.dto';
 
 @ApiTags('dashboard')
 @Controller('dashboard')
@@ -66,6 +67,45 @@ export class DashboardController {
         TICKET_MESSAGE.GET_LIST_TICKET_SUCCESS,
       ),
       data: await this.ticketService.findTicketByPartnerId(user.id),
+    };
+  }
+
+  @Put('tickets/:id')
+  @ApiBearerAuth()
+  @UseGuards(AuthGuard)
+  @AuthDecorator([ERole.ADMIN, ERole.PARTNER])
+  async updateTicketByPartnerId(
+    @Param('id') id: string,
+    @UserDecorator() user,
+    @Body() updateTicketDto: UpdateTicketDto,
+  ): Promise<{
+    message: string;
+    data: Ticket;
+  }> {
+    return {
+      message: this.localesService.translate(
+        TICKET_MESSAGE.UPDATE_TICKET_SUCCESS,
+      ),
+      data: await this.ticketService.update(id, user, updateTicketDto),
+    };
+  }
+
+  @Delete('tickets/:id')
+  @ApiBearerAuth()
+  @AuthDecorator([ERole.ADMIN, ERole.PARTNER])
+  @UseGuards(AuthGuard)
+  async removeTicketByPartnerId(
+    @Param('id') id: string,
+    @UserDecorator() user,
+  ): Promise<{
+    message: string;
+  }> {
+    await this.ticketService.remove(id, user);
+
+    return {
+      message: this.localesService.translate(
+        TICKET_MESSAGE.DELETE_TICKET_SUCCESS,
+      ),
     };
   }
 
