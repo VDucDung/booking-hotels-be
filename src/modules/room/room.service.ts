@@ -53,9 +53,41 @@ export class RoomService {
     return await this.roomRepository.find();
   }
 
+  async findRoomByPartnerId(partnerId: number): Promise<Room[]> {
+    return await this.roomRepository.find({
+      where: {
+        partner: {
+          id: partnerId,
+        },
+      },
+    });
+  }
+
   async findOne(id: number): Promise<Room> {
     const room = await this.roomRepository.findOne({
       where: { id },
+      relations: ['partner'],
+      select: {
+        partner: {
+          id: true,
+        },
+      },
+    });
+
+    if (!room) {
+      ErrorHelper.NotFoundException(ROOM_MESSAGE.ROOM_NOT_FOUND);
+    }
+
+    return room;
+  }
+
+  async findByPartnerId(partnerId: number): Promise<Room> {
+    const room = await this.roomRepository.findOne({
+      where: {
+        partner: {
+          id: partnerId,
+        },
+      },
       relations: ['partner'],
       select: {
         partner: {

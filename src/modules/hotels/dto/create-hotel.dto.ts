@@ -49,17 +49,6 @@ export class CreateHotelDto {
     message: i18nValidationMessage(COMMON_MESSAGE.NOT_EMPTY),
   })
   @ApiProperty({
-    name: 'partnerId',
-    type: Number,
-    required: true,
-  })
-  partnerId?: number;
-
-  @IsOptional()
-  @IsNotEmpty({
-    message: i18nValidationMessage(COMMON_MESSAGE.NOT_EMPTY),
-  })
-  @ApiProperty({
     name: 'favoriteId',
     type: Number,
     required: false,

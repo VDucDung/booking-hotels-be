@@ -32,6 +32,7 @@ import { ReviewReplyModule } from './modules/review_reply/review_reply.module';
 import { StripeModule } from './modules/stripe/stripe.module';
 import { TransactionsModule } from './transactions/transactions.module';
 import { WalletsModule } from './wallets/wallets.module';
+import { DashboardModule } from './modules/dashboard/dashboard.module';
 
 @Module({
   imports: [
@@ -86,6 +87,7 @@ import { WalletsModule } from './wallets/wallets.module';
     StripeModule,
     TransactionsModule,
     WalletsModule,
+    DashboardModule,
   ],
   controllers: [AppController],
   providers: [AppService],

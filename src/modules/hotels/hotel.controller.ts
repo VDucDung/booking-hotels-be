@@ -74,8 +74,7 @@ export class HotelController {
     @Body() createHotelDto: CreateHotelDto,
     @UploadedFiles() files: Array<Express.Multer.File>,
   ) {
-    createHotelDto.partnerId = user.id;
-    return this.hotelService.create(createHotelDto, files);
+    return this.hotelService.create(user, createHotelDto, files);
   }
 
   @Get()

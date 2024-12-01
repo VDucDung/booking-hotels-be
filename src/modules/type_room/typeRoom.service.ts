@@ -76,6 +76,17 @@ export class TypeRoomService {
     return this.typeRoomRepository.find({ relations: ['hotel', 'rooms'] });
   }
 
+  async findTypeRoomByPartnerId(partnerId: number): Promise<TypeRoom[]> {
+    return this.typeRoomRepository.find({
+      where: {
+        partner: {
+          id: partnerId,
+        },
+      },
+      relations: ['rooms'],
+    });
+  }
+
   async find(options: FindManyOptions<TypeRoom>): Promise<TypeRoom[]> {
     return this.typeRoomRepository.find(options);
   }
@@ -136,29 +147,6 @@ export class TypeRoomService {
         throw ErrorHelper.ForbiddenException(
           this.localesService.translate(AUTH_MESSAGE.NO_PERMISSION),
         );
-      }
-
-      if (updateTypeRoomDto.hotelId) {
-        const hotel = await queryRunner.manager.findOne(Hotel, {
-          where: { id: updateTypeRoomDto.hotelId },
-          relations: ['partner'],
-        });
-
-        if (!hotel) {
-          throw ErrorHelper.NotFoundException(
-            this.localesService.translate(
-              TYPE_ROOM_MESSAGE.TYPE_ROOM_NOT_FOUND,
-            ),
-          );
-        }
-
-        if (hotel.partner.id !== user.id && user.role.name !== 'ADMIN') {
-          throw ErrorHelper.ForbiddenException(
-            this.localesService.translate(AUTH_MESSAGE.NO_PERMISSION),
-          );
-        }
-
-        typeRoom.hotel = hotel;
       }
 
       Object.assign(typeRoom, updateTypeRoomDto);

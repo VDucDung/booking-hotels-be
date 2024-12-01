@@ -183,6 +183,36 @@ export class TicketService {
     return ticket;
   }
 
+  async findTicketByPartnerId(userId: number): Promise<Ticket[]> {
+    const room = await this.roomService.findByPartnerId(userId);
+
+    const ticket = await this.ticketRepository.find({
+      where: {
+        room: {
+          id: room.id,
+        },
+      },
+      relations: ['room'],
+      select: {
+        room: {
+          id: true,
+          capacity: true,
+          description: true,
+          images: true,
+          roomName: true,
+        },
+      },
+    });
+
+    if (!ticket) {
+      ErrorHelper.NotFoundException(
+        this.localesService.translate(TICKET_MESSAGE.TICKET_NOT_FOUND),
+      );
+    }
+
+    return ticket;
+  }
+
   async findByPaymentIntentId(stripePaymentIntentId: string): Promise<Ticket> {
     const ticket = await this.ticketRepository.findOne({
       where: { stripePaymentIntentId },

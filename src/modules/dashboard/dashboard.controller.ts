@@ -1,0 +1,403 @@
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  HttpCode,
+  HttpStatus,
+  Param,
+  Post,
+  Put,
+  UploadedFile,
+  UploadedFiles,
+  UseGuards,
+  UseInterceptors,
+} from '@nestjs/common';
+import { ApiBearerAuth, ApiBody, ApiConsumes, ApiTags } from '@nestjs/swagger';
+import { AuthGuard } from 'src/common/guards/auth.guard';
+import { ERole } from 'src/enums/roles.enum';
+import { AuthDecorator } from 'src/common/decorators/auth.decorator';
+import { UserDecorator } from 'src/common/decorators/user.decorator';
+import { Ticket } from '../tickets/entities/ticket.entity';
+import { LocalesService } from '../locales/locales.service';
+import {
+  HOTEL_MESSAGE,
+  ROOM_MESSAGE,
+  TICKET_MESSAGE,
+  TYPE_ROOM_MESSAGE,
+} from 'src/messages';
+import { TicketService } from '../tickets/ticket.service';
+import { HotelService } from '../hotels/hotel.service';
+import { Hotel } from '../hotels/entities/hotel.entity';
+import { CreateHotelDto } from '../hotels/dto/create-hotel.dto';
+import { TypeRoomService } from '../type_room/typeRoom.service';
+import { TypeRoom } from '../type_room/entities/type_room.entity';
+import { UpdateTypeRoomDto } from '../type_room/dto/update-type-room.dto';
+import { RoomService } from '../room/room.service';
+import { Room } from '../room/entities/room.entity';
+import { UpdateRoomDto } from '../room/dto/update-room.dto';
+import { FilesInterceptor } from '@nestjs/platform-express';
+import { multerOptions } from '../uploads/options/multer.option';
+import { UpdateHotelDto } from '../hotels/dto/update-hotel.dto';
+import { CreateTypeRoomDto } from '../type_room/dto/create-type-room.dto';
+import { CreateRoomDto } from '../room/dto/create-room.dto';
+
+@ApiTags('dashboard')
+@Controller('dashboard')
+export class DashboardController {
+  constructor(
+    private readonly localesService: LocalesService,
+    private readonly ticketService: TicketService,
+    private readonly hotelService: HotelService,
+    private readonly typeRoomService: TypeRoomService,
+    private readonly roomService: RoomService,
+  ) {}
+
+  @Get('tickets')
+  @ApiBearerAuth()
+  @UseGuards(AuthGuard)
+  @AuthDecorator([ERole.ADMIN, ERole.PARTNER])
+  async findTicketByPartnerId(@UserDecorator() user): Promise<{
+    message: string;
+    data: Ticket[];
+  }> {
+    return {
+      message: this.localesService.translate(
+        TICKET_MESSAGE.GET_LIST_TICKET_SUCCESS,
+      ),
+      data: await this.ticketService.findTicketByPartnerId(user.id),
+    };
+  }
+
+  @Get('hotels')
+  @ApiBearerAuth()
+  @UseGuards(AuthGuard)
+  @AuthDecorator([ERole.ADMIN, ERole.PARTNER])
+  async findHotelByPartnerId(@UserDecorator() user): Promise<{
+    message: string;
+    data: Hotel[];
+  }> {
+    return {
+      message: this.localesService.translate(HOTEL_MESSAGE.GET_HOTELS_SUCCESS),
+      data: await this.hotelService.findHotelByPartnerId(user.id),
+    };
+  }
+
+  @Post('hotels')
+  @ApiBearerAuth()
+  @UseGuards(AuthGuard)
+  @AuthDecorator([ERole.ADMIN, ERole.PARTNER])
+  @ApiConsumes('multipart/form-data')
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        files: {
+          type: 'array',
+          items: {
+            type: 'string',
+            format: 'binary',
+          },
+        },
+        hotelName: {
+          type: 'string',
+        },
+        address: {
+          type: 'string',
+        },
+        description: {
+          type: 'string',
+        },
+        typeRooms: {
+          type: 'number',
+        },
+      },
+    },
+  })
+  @UseInterceptors(FilesInterceptor('files', 10, multerOptions.fileFilter))
+  async createHotelByPartnerId(
+    @UserDecorator() user,
+    createHotelDto: CreateHotelDto,
+    @UploadedFiles() files: Array<Express.Multer.File>,
+  ): Promise<{
+    message: string;
+    data: Hotel;
+  }> {
+    return {
+      message: this.localesService.translate(
+        HOTEL_MESSAGE.CREATE_HOTEL_SUCCESS,
+      ),
+      data: await this.hotelService.create(user, createHotelDto, files),
+    };
+  }
+
+  @Put('hotels/:hotelId')
+  @UseGuards(AuthGuard)
+  @AuthDecorator([ERole.PARTNER, ERole.ADMIN])
+  @ApiConsumes('multipart/form-data')
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        files: {
+          type: 'array',
+          items: {
+            type: 'string',
+            format: 'binary',
+          },
+        },
+        hotelName: {
+          type: 'string',
+        },
+        address: {
+          type: 'string',
+        },
+        description: {
+          type: 'string',
+        },
+        typeRooms: {
+          type: 'number',
+        },
+      },
+    },
+  })
+  @UseInterceptors(FilesInterceptor('files', 10, multerOptions.fileFilter))
+  async updateHotelByPartnerId(
+    @Param('hotelId') hotelId: number,
+    @UserDecorator() user,
+    @Body() updateHotelDto: UpdateHotelDto,
+    @UploadedFiles() files: Array<Express.Multer.File>,
+  ): Promise<{
+    message: string;
+    data: Hotel;
+  }> {
+    const updatedHotel = await this.hotelService.update(
+      hotelId,
+      updateHotelDto,
+      user,
+      files,
+    );
+
+    return {
+      message: this.localesService.translate(
+        HOTEL_MESSAGE.UPDATE_HOTEL_SUCCESS,
+      ),
+      data: updatedHotel,
+    };
+  }
+
+  @Delete('hotels/:hotelId')
+  @ApiBearerAuth()
+  @UseGuards(AuthGuard)
+  @AuthDecorator([ERole.ADMIN, ERole.PARTNER])
+  async deleteHotelByPartnerId(
+    @UserDecorator() user,
+    @Param('hotelId') hotelId: number,
+  ): Promise<{
+    message: string;
+  }> {
+    await this.hotelService.remove(hotelId, user);
+    return {
+      message: this.localesService.translate(
+        HOTEL_MESSAGE.DELETE_HOTEL_SUCCESS,
+      ),
+    };
+  }
+
+  @Post('typeRooms')
+  @ApiBearerAuth()
+  @UseGuards(AuthGuard)
+  @AuthDecorator([ERole.ADMIN, ERole.PARTNER])
+  async createTypeRoomByPartnerId(
+    createTypeRoomDto: CreateTypeRoomDto,
+    @UserDecorator() user,
+  ): Promise<{
+    message: string;
+    data: TypeRoom;
+  }> {
+    return {
+      message: this.localesService.translate(
+        TYPE_ROOM_MESSAGE.CREATE_TYPE_ROOM_SUCCESS,
+      ),
+      data: await this.typeRoomService.create(createTypeRoomDto, user),
+    };
+  }
+
+  @Get('typeRooms')
+  @ApiBearerAuth()
+  @UseGuards(AuthGuard)
+  @AuthDecorator([ERole.ADMIN, ERole.PARTNER])
+  async findTypeRoomByPartnerId(@UserDecorator() user): Promise<{
+    message: string;
+    data: TypeRoom[];
+  }> {
+    return {
+      message: 'Get type rooms successfully',
+      data: await this.typeRoomService.findTypeRoomByPartnerId(user.id),
+    };
+  }
+
+  @Put('typeRooms/:typeRoomId')
+  @ApiBearerAuth()
+  @UseGuards(AuthGuard)
+  @AuthDecorator([ERole.ADMIN, ERole.PARTNER])
+  async updateTypeRoomByPartnerId(
+    @UserDecorator() user,
+    updateTypeRoomDto: UpdateTypeRoomDto,
+    @Param('typeRoomId') typeRoomId: number,
+  ): Promise<{
+    message: string;
+    data: TypeRoom;
+  }> {
+    return {
+      message: this.localesService.translate(
+        TYPE_ROOM_MESSAGE.UPDATE_TYPE_ROOM_SUCCESS,
+      ),
+      data: await this.typeRoomService.update(
+        typeRoomId,
+        updateTypeRoomDto,
+        user,
+      ),
+    };
+  }
+
+  @Delete('typeRooms/:typeRoomId')
+  @ApiBearerAuth()
+  @UseGuards(AuthGuard)
+  @AuthDecorator([ERole.ADMIN, ERole.PARTNER])
+  async removeHotelByPartnerId(
+    @UserDecorator() user,
+    @Param('typeRoomId') typeRoomId: number,
+  ): Promise<{
+    message: string;
+  }> {
+    await this.typeRoomService.remove(typeRoomId, user);
+    return {
+      message: this.localesService.translate(
+        TYPE_ROOM_MESSAGE.DELETE_TYPE_ROOM_SUCCESS,
+      ),
+    };
+  }
+
+  @Post('rooms')
+  @HttpCode(HttpStatus.CREATED)
+  @ApiConsumes('multipart/form-data')
+  @ApiBody({
+    schema: {
+      type: 'object',
+      required: ['roomName', 'price', 'typeRoomId'],
+      properties: {
+        files: {
+          type: 'array',
+          items: {
+            type: 'string',
+            format: 'binary',
+          },
+        },
+        roomName: {
+          type: 'string',
+        },
+        description: {
+          type: 'string',
+        },
+        options: {
+          type: 'array',
+          items: {
+            type: 'object',
+            properties: {
+              feature: { type: 'string' },
+              availability: { type: 'boolean' },
+            },
+          },
+        },
+        price: {
+          type: 'number',
+        },
+        typeRoomId: {
+          type: 'number',
+        },
+      },
+    },
+  })
+  @ApiBearerAuth()
+  @UseGuards(AuthGuard)
+  @UseInterceptors(FilesInterceptor('files', 10, multerOptions.fileFilter))
+  async create(
+    @Body() createRoomDto: CreateRoomDto,
+    @UploadedFiles() files: Array<Express.Multer.File>,
+    @UserDecorator() user: { id: number },
+  ): Promise<{ message: string; data: Room }> {
+    createRoomDto.partnerId = user.id;
+
+    const newRoom = await this.roomService.create(createRoomDto, files);
+
+    return {
+      message: this.localesService.translate(ROOM_MESSAGE.CREATE_ROOM_SUCCESS),
+      data: newRoom,
+    };
+  }
+
+  @Get('rooms')
+  @ApiBearerAuth()
+  @UseGuards(AuthGuard)
+  @AuthDecorator([ERole.ADMIN, ERole.PARTNER])
+  async findRoomByPartnerId(@UserDecorator() user): Promise<{
+    message: string;
+    data: Room[];
+  }> {
+    return {
+      message: this.localesService.translate(
+        ROOM_MESSAGE.GET_LIST_ROOM_SUCCESS,
+      ),
+      data: await this.roomService.findRoomByPartnerId(user.id),
+    };
+  }
+
+  @Put('rooms/:roomId')
+  @ApiBearerAuth()
+  @UseGuards(AuthGuard)
+  @AuthDecorator([ERole.ADMIN, ERole.PARTNER])
+  @ApiConsumes('multipart/form-data')
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        file: {
+          type: 'string',
+          format: 'binary',
+        },
+      },
+    },
+  })
+  @UseInterceptors(FilesInterceptor('files', 10, multerOptions.fileFilter))
+  async updateRoomByPartnerId(
+    @UserDecorator() user,
+    updateRoomDto: UpdateRoomDto,
+    @UploadedFile() file,
+    @Param('roomId') roomId: number,
+  ): Promise<{
+    message: string;
+    data: Room;
+  }> {
+    return {
+      message: this.localesService.translate(ROOM_MESSAGE.UPDATE_ROOM_SUCCESS),
+      data: await this.roomService.update(roomId, user, updateRoomDto, file),
+    };
+  }
+
+  @Delete('room/:roomId')
+  @ApiBearerAuth()
+  @UseGuards(AuthGuard)
+  @AuthDecorator([ERole.ADMIN, ERole.PARTNER])
+  async removeRoomByPartnerId(
+    @UserDecorator() user,
+    @Param('roomId') roomId: number,
+  ): Promise<{
+    message: string;
+  }> {
+    await this.roomService.remove(roomId, user);
+    return {
+      message: this.localesService.translate(ROOM_MESSAGE.DELETE_ROOM_SUCCESS),
+    };
+  }
+}

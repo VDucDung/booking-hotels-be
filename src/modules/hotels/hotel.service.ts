@@ -36,6 +36,7 @@ export class HotelService {
     private connection: Connection,
   ) {}
   async create(
+    user: User,
     createHotelDto: CreateHotelDto,
     files: Array<Express.Multer.File>,
   ): Promise<Hotel> {
@@ -45,9 +46,9 @@ export class HotelService {
     await queryRunner.startTransaction();
 
     try {
-      const { partnerId, favoriteId, typeRoomIds } = createHotelDto;
+      const { favoriteId, typeRoomIds } = createHotelDto;
 
-      const partner = await this.userService.getUserById(partnerId);
+      const partner = await this.userService.getUserById(user.id);
       if (!partner) {
         ErrorHelper.NotFoundException(USER_MESSAGE.USER_NOT_FOUND);
       }
@@ -115,6 +116,25 @@ export class HotelService {
     return result;
   }
 
+  async findHotelByPartnerId(userId: number): Promise<Hotel[]> {
+    const hotel = await this.hotelRepository.find({
+      where: {
+        partner: {
+          id: userId,
+        },
+      },
+      relations: ['favorites', 'reviews'],
+    });
+
+    if (!hotel) {
+      ErrorHelper.NotFoundException(
+        this.localesService.translate(HOTEL_MESSAGE.HOTEL_NOT_FOUND),
+      );
+    }
+
+    return hotel;
+  }
+
   async findOne(id: number): Promise<Hotel> {
     const hotel = await this.hotelRepository.findOne({
       where: { id },
@@ -142,17 +162,72 @@ export class HotelService {
     id: number,
     updateHotelDto: UpdateHotelDto,
     user: User,
+    files?: Array<Express.Multer.File>,
   ): Promise<Hotel> {
-    const hotel = await this.findOne(id);
-    if (hotel.partner.id !== user.id && user.role.name !== 'ADMIN') {
-      ErrorHelper.ForbiddenException(
-        this.localesService.translate(AUTH_MESSAGE.NO_PERMISSION),
-      );
+    const queryRunner = this.connection.createQueryRunner();
+
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
+
+    try {
+      const { favoriteId, typeRoomIds } = updateHotelDto;
+
+      const hotel = await this.findOne(id);
+      if (!hotel) {
+        ErrorHelper.NotFoundException(HOTEL_MESSAGE.HOTEL_NOT_FOUND);
+      }
+
+      if (hotel.partner.id !== user.id && user.role.name !== 'ADMIN') {
+        ErrorHelper.ForbiddenException(
+          this.localesService.translate(AUTH_MESSAGE.NO_PERMISSION),
+        );
+      }
+
+      let favorite: Favorite = null;
+      if (favoriteId) {
+        favorite = await this.favoriteService.findOne({
+          where: { id: favoriteId },
+        });
+        if (!favorite) {
+          ErrorHelper.NotFoundException(FAVORITE_MESSAGE.FAVORITE_NOT_FOUND);
+        }
+      }
+
+      let typeRooms = [];
+      if (typeRoomIds && typeRoomIds.length > 0) {
+        typeRooms = await this.typeRoomService.find({
+          where: { id: In(typeRoomIds) },
+        });
+        if (typeRooms.length !== typeRoomIds.length) {
+          ErrorHelper.NotFoundException(TYPE_ROOM_MESSAGE.TYPE_ROOM_NOT_FOUND);
+        }
+      }
+
+      let urls: string[] = hotel.images || [];
+      if (files && files.length > 0) {
+        const uploadPromises = files.map((file) =>
+          this.uploadService.uploadImage(file),
+        );
+        urls = await Promise.all(uploadPromises);
+      }
+
+      Object.assign(hotel, {
+        ...updateHotelDto,
+        images: urls,
+        favorites: favorite ? [favorite] : hotel.favorites,
+        typeRooms: typeRooms.length > 0 ? typeRooms : hotel.typeRooms,
+      });
+
+      const updatedHotel = await queryRunner.manager.save(hotel);
+
+      await queryRunner.commitTransaction();
+      return updatedHotel;
+    } catch (error) {
+      await queryRunner.rollbackTransaction();
+      throw error;
+    } finally {
+      await queryRunner.release();
     }
-
-    Object.assign(hotel, updateHotelDto);
-
-    return this.hotelRepository.save(hotel);
   }
 
   async updateFavorite(id: number, favorite: Favorite | null): Promise<Hotel> {

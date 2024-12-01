@@ -16,7 +16,6 @@ import { UserModule } from '../users/user.module';
     LocalesModule,
     UploadModule,
     PermissionsModule,
-    LocalesModule,
     UserModule,
     JwtModule.register({
       secret: JWT.secretAccess,
