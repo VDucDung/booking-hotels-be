@@ -284,7 +284,7 @@ export class TicketService {
 
   async remove(id: string, user: User): Promise<void> {
     const ticket = await this.findOne(id);
-    if (ticket.user.id !== user.id && user.role.name !== ERole.ADMIN) {
+    if (ticket.room.partner.id !== user.id && user.role.name !== ERole.ADMIN) {
       ErrorHelper.ForbiddenException(
         this.localesService.translate(AUTH_MESSAGE.NO_PERMISSION),
       );

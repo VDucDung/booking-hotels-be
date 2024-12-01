@@ -98,11 +98,13 @@ export class DashboardController {
     @Param('id') id: string,
     @UserDecorator() user,
   ): Promise<{
+    statusCode: number;
     message: string;
   }> {
     await this.ticketService.remove(id, user);
 
     return {
+      statusCode: HttpStatus.OK,
       message: this.localesService.translate(
         TICKET_MESSAGE.DELETE_TICKET_SUCCESS,
       ),
