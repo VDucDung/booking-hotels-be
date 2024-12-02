@@ -38,13 +38,17 @@ export class Hotel {
   @Column({ nullable: false })
   contactPhone: string;
 
-  @OneToMany(() => Review, (review) => review.hotelId)
+  @OneToMany(() => Review, (review) => review.hotelId, { onDelete: 'CASCADE' })
   reviews?: Review[];
 
-  @OneToMany(() => TypeRoom, (typeroom) => typeroom.hotel, { nullable: true })
+  @OneToMany(() => TypeRoom, (typeroom) => typeroom.hotel, {
+    onDelete: 'CASCADE',
+  })
   typeRooms: TypeRoom[];
 
-  @OneToMany(() => Favorite, (favorite) => favorite.hotel)
+  @OneToMany(() => Favorite, (favorite) => favorite.hotel, {
+    onDelete: 'CASCADE',
+  })
   favorites: Favorite[];
 
   @Column({ nullable: true })
@@ -53,8 +57,8 @@ export class Hotel {
   @Column({ nullable: true })
   totalReviews?: number;
 
-  @OneToMany(() => TypeUtility, (typeroom) => typeroom.hotel, {
-    nullable: true,
+  @OneToMany(() => TypeUtility, (typeUtility) => typeUtility.hotel, {
+    onDelete: 'CASCADE',
   })
   typeUtility: TypeUtility[];
 

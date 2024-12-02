@@ -19,11 +19,16 @@ export class TypeUtility {
   @Column({ nullable: false })
   name: string;
 
-  @ManyToOne(() => Hotel, (hotel) => hotel.typeUtility, { nullable: true })
+  @ManyToOne(() => Hotel, (hotel) => hotel.typeUtility, {
+    nullable: true,
+    onDelete: 'CASCADE',
+  })
   @JoinColumn({ name: 'hotel_id' })
   hotel?: Hotel;
 
-  @OneToMany(() => Utility, (utility) => utility.typeUtility)
+  @OneToMany(() => Utility, (utility) => utility.typeUtility, {
+    onDelete: 'CASCADE',
+  })
   utilities: Utility[];
 
   @CreateDateColumn({ name: 'created_at' })

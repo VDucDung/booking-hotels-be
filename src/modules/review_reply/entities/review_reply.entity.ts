@@ -15,7 +15,7 @@ export class ReviewReply {
   @PrimaryGeneratedColumn('increment')
   id: number;
 
-  @ManyToOne(() => Review, (review) => review.replies)
+  @ManyToOne(() => Review, (review) => review.replies, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'review_id' })
   review: Review;
 

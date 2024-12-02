@@ -18,6 +18,7 @@ export class Utility {
 
   @ManyToOne(() => TypeUtility, (typeUtility) => typeUtility.utilities, {
     nullable: false,
+    onDelete: 'CASCADE',
   })
   typeUtility: TypeUtility;
 

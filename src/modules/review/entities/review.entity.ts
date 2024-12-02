@@ -23,7 +23,7 @@ export class Review {
   @JoinColumn({ name: 'user_id' })
   userId: User;
 
-  @ManyToOne(() => Hotel, (hotel) => hotel.reviews)
+  @ManyToOne(() => Hotel, (hotel) => hotel.reviews, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'hotel_id' })
   hotelId: Hotel;
 
@@ -39,7 +39,9 @@ export class Review {
   })
   rating: number;
 
-  @OneToMany(() => ReviewReply, (reply) => reply.review)
+  @OneToMany(() => ReviewReply, (reply) => reply.review, {
+    onDelete: 'CASCADE',
+  })
   replies: ReviewReply[];
 
   @CreateDateColumn({ name: 'created_at' })

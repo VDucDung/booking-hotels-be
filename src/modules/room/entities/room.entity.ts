@@ -42,15 +42,17 @@ export class Room {
   @Column({ nullable: false, default: 0 })
   price: number;
 
-  @ManyToOne(() => TypeRoom, (typeRoom) => typeRoom.rooms)
+  @ManyToOne(() => TypeRoom, (typeRoom) => typeRoom.rooms, {
+    onDelete: 'CASCADE',
+  })
   @JoinColumn({ name: 'type_room_id' })
   typeRoomId: TypeRoom;
 
-  @ManyToOne(() => User, { nullable: false, onDelete: 'CASCADE' })
+  @ManyToOne(() => User, { nullable: false })
   @JoinColumn({ name: 'partner_id' })
   partner: User;
 
-  @OneToMany(() => Ticket, (ticket) => ticket.room)
+  @OneToMany(() => Ticket, (ticket) => ticket.room, { onDelete: 'CASCADE' })
   tickets: Ticket[];
 
   @Column({ nullable: true })

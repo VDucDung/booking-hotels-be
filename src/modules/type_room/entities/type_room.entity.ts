@@ -23,10 +23,13 @@ export class TypeRoom {
   @Column({ nullable: true })
   description: string;
 
-  @OneToMany(() => Room, (room) => room.typeRoomId)
+  @OneToMany(() => Room, (room) => room.typeRoomId, { onDelete: 'CASCADE' })
   rooms: Room[];
 
-  @ManyToOne(() => Hotel, (hotel) => hotel.typeRooms, { nullable: true })
+  @ManyToOne(() => Hotel, (hotel) => hotel.typeRooms, {
+    nullable: true,
+    onDelete: 'CASCADE',
+  })
   @JoinColumn({ name: 'hotel_id' })
   hotel: Hotel;
 
