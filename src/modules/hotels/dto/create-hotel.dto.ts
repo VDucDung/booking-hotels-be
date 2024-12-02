@@ -49,18 +49,16 @@ export class CreateHotelDto {
   @ApiProperty({
     name: 'description',
     type: String,
-    required: false,
+    required: true,
   })
   description?: string;
 
   @IsOptional()
-  @IsArray({
-    message: i18nValidationMessage(COMMON_MESSAGE.INVALID),
-  })
+  @IsArray()
   @ApiProperty({
     name: 'images',
     type: [String],
-    required: true,
+    required: false,
   })
   images: string[];
 
@@ -73,7 +71,7 @@ export class CreateHotelDto {
     type: Number,
     required: false,
   })
-  favoriteId: number;
+  favoriteId?: number;
 
   @IsOptional()
   @IsNotEmpty({
@@ -86,13 +84,14 @@ export class CreateHotelDto {
   })
   reviews?: Review[];
 
+  @IsOptional()
   @IsNotEmpty({
     message: i18nValidationMessage(COMMON_MESSAGE.NOT_EMPTY),
   })
   @ApiProperty({
     name: 'typeRoomIds',
     type: [Number],
-    required: true,
+    required: false,
   })
-  typeRoomIds: number[];
+  typeRoomIds?: number[];
 }

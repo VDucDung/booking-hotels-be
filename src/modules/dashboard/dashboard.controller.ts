@@ -134,7 +134,7 @@ export class DashboardController {
     schema: {
       type: 'object',
       properties: {
-        files: {
+        images: {
           type: 'array',
           items: {
             type: 'string',
@@ -147,20 +147,20 @@ export class DashboardController {
         address: {
           type: 'string',
         },
-        description: {
+        contactPhone: {
           type: 'string',
         },
-        typeRooms: {
-          type: 'number',
+        description: {
+          type: 'string',
         },
       },
     },
   })
-  @UseInterceptors(FilesInterceptor('files', 10, multerOptions.fileFilter))
+  @UseInterceptors(FilesInterceptor('images', 10, multerOptions.fileFilter))
   async createHotelByPartnerId(
     @UserDecorator() user,
-    createHotelDto: CreateHotelDto,
-    @UploadedFiles() files: Array<Express.Multer.File>,
+    @Body() createHotelDto: CreateHotelDto,
+    @UploadedFiles() images: Array<Express.Multer.File>,
   ): Promise<{
     message: string;
     data: Hotel;
@@ -169,19 +169,20 @@ export class DashboardController {
       message: this.localesService.translate(
         HOTEL_MESSAGE.CREATE_HOTEL_SUCCESS,
       ),
-      data: await this.hotelService.create(user, createHotelDto, files),
+      data: await this.hotelService.create(user, createHotelDto, images),
     };
   }
 
   @Put('hotels/:hotelId')
   @UseGuards(AuthGuard)
+  @ApiBearerAuth()
   @AuthDecorator([ERole.PARTNER, ERole.ADMIN])
   @ApiConsumes('multipart/form-data')
   @ApiBody({
     schema: {
       type: 'object',
       properties: {
-        files: {
+        images: {
           type: 'array',
           items: {
             type: 'string',
@@ -194,21 +195,21 @@ export class DashboardController {
         address: {
           type: 'string',
         },
-        description: {
+        contactPhone: {
           type: 'string',
         },
-        typeRooms: {
-          type: 'number',
+        description: {
+          type: 'string',
         },
       },
     },
   })
-  @UseInterceptors(FilesInterceptor('files', 10, multerOptions.fileFilter))
+  @UseInterceptors(FilesInterceptor('images', 10, multerOptions.fileFilter))
   async updateHotelByPartnerId(
     @Param('hotelId') hotelId: number,
     @UserDecorator() user,
     @Body() updateHotelDto: UpdateHotelDto,
-    @UploadedFiles() files: Array<Express.Multer.File>,
+    @UploadedFiles() images: Array<Express.Multer.File>,
   ): Promise<{
     message: string;
     data: Hotel;
@@ -217,7 +218,7 @@ export class DashboardController {
       hotelId,
       updateHotelDto,
       user,
-      files,
+      images,
     );
 
     return {

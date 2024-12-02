@@ -46,28 +46,9 @@ export class HotelService {
     await queryRunner.startTransaction();
 
     try {
-      const { favoriteId, typeRoomIds } = createHotelDto;
-
       const partner = await this.userService.getUserById(user.id);
       if (!partner) {
         ErrorHelper.NotFoundException(USER_MESSAGE.USER_NOT_FOUND);
-      }
-
-      let favorite: Favorite = null;
-      if (favoriteId) {
-        favorite = await this.favoriteService.findOne({
-          where: { id: favoriteId },
-        });
-        if (!favorite) {
-          ErrorHelper.NotFoundException(FAVORITE_MESSAGE.FAVORITE_NOT_FOUND);
-        }
-      }
-
-      const typeRooms = await this.typeRoomService.find({
-        where: { id: In(typeRoomIds) },
-      });
-      if (typeRooms.length !== typeRoomIds.length) {
-        ErrorHelper.NotFoundException(TYPE_ROOM_MESSAGE.TYPE_ROOM_NOT_FOUND);
       }
 
       let urls: string[] = [];
@@ -85,8 +66,6 @@ export class HotelService {
         ...createHotelDto,
         images: urls,
         partner,
-        favorites: [favorite],
-        typeRooms,
       });
 
       const savedHotel = await queryRunner.manager.save(hotel);
