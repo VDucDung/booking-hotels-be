@@ -10,7 +10,6 @@ export class CreateTypeRoomDto {
   @ApiProperty({
     name: 'name',
     type: String,
-    example: 'Deluxe',
     required: true,
   })
   name: string;
@@ -22,7 +21,6 @@ export class CreateTypeRoomDto {
   @ApiProperty({
     name: 'description',
     type: String,
-    example: 'A deluxe room with ocean view',
     required: false,
   })
   description?: string;
@@ -33,7 +31,6 @@ export class CreateTypeRoomDto {
   @ApiProperty({
     name: 'hotelId',
     type: Number,
-    example: 1,
     required: true,
   })
   hotelId: number;

@@ -11,6 +11,7 @@ import { User } from '../users/entities/user.entity';
 import { Hotel } from '../hotels/entities/hotel.entity';
 import { HotelService } from '../hotels/hotel.service';
 import { Room } from '../room/entities/room.entity';
+import { GroupedTypeRooms } from 'src/interfaces/typeRoom.interface';
 
 @Injectable()
 export class TypeRoomService {
@@ -63,6 +64,8 @@ export class TypeRoomService {
       const savedTypeRoom = await queryRunner.manager.save(newTypeRoom);
 
       await queryRunner.commitTransaction();
+      delete savedTypeRoom.hotel;
+      delete savedTypeRoom.partner;
       return savedTypeRoom;
     } catch (error) {
       await queryRunner.rollbackTransaction();
@@ -76,15 +79,44 @@ export class TypeRoomService {
     return this.typeRoomRepository.find({ relations: ['hotel', 'rooms'] });
   }
 
-  async findTypeRoomByPartnerId(partnerId: number): Promise<TypeRoom[]> {
-    return this.typeRoomRepository.find({
+  async findTypeRoomByPartnerId(partnerId: number): Promise<GroupedTypeRooms> {
+    const typeRooms = await this.typeRoomRepository.find({
       where: {
         partner: {
           id: partnerId,
         },
       },
-      relations: ['rooms'],
+      relations: ['hotel'],
+      select: {
+        id: true,
+        hotel: {
+          id: true,
+          hotelName: true,
+        },
+        name: true,
+        description: true,
+        createdAt: true,
+      },
     });
+
+    const groupedTypeRooms = typeRooms.reduce(
+      (acc, typeRoom) => {
+        const hotelId = typeRoom.hotel.id;
+
+        if (!acc[hotelId]) {
+          acc[hotelId] = {
+            hotelName: typeRoom.hotel.hotelName,
+            typeRooms: [],
+          };
+        }
+
+        acc[hotelId].typeRooms.push(typeRoom);
+        return acc;
+      },
+      {} as { [hotelId: number]: { hotelName: string; typeRooms: TypeRoom[] } },
+    );
+
+    return groupedTypeRooms;
   }
 
   async find(options: FindManyOptions<TypeRoom>): Promise<TypeRoom[]> {
@@ -109,7 +141,12 @@ export class TypeRoomService {
   async findOne(id: number): Promise<TypeRoom> {
     const typeRoom = await this.typeRoomRepository.findOne({
       where: { id },
-      relations: ['hotel', 'rooms'],
+      relations: ['hotel', 'rooms', 'partner'],
+      select: {
+        partner: {
+          id: true,
+        },
+      },
     });
 
     if (!typeRoom) {
@@ -154,6 +191,8 @@ export class TypeRoomService {
       const updatedTypeRoom = await queryRunner.manager.save(typeRoom);
 
       await queryRunner.commitTransaction();
+      delete updatedTypeRoom.hotel;
+      delete updatedTypeRoom.partner;
       return updatedTypeRoom;
     } catch (error) {
       await queryRunner.rollbackTransaction();

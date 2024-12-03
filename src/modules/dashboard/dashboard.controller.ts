@@ -44,6 +44,7 @@ import { CreateRoomDto } from '../room/dto/create-room.dto';
 import { UpdateTicketDto } from '../tickets/dto/update-ticket.dto';
 import { UploadService } from '../uploads/upload.service';
 import { User } from '../users/entities/user.entity';
+import { GroupedTypeRooms } from 'src/interfaces/typeRoom.interface';
 
 @ApiTags('dashboard')
 @Controller('dashboard')
@@ -253,7 +254,7 @@ export class DashboardController {
   @UseGuards(AuthGuard)
   @AuthDecorator([ERole.ADMIN, ERole.PARTNER])
   async createTypeRoomByPartnerId(
-    createTypeRoomDto: CreateTypeRoomDto,
+    @Body() createTypeRoomDto: CreateTypeRoomDto,
     @UserDecorator() user,
   ): Promise<{
     message: string;
@@ -273,7 +274,7 @@ export class DashboardController {
   @AuthDecorator([ERole.ADMIN, ERole.PARTNER])
   async findTypeRoomByPartnerId(@UserDecorator() user): Promise<{
     message: string;
-    data: TypeRoom[];
+    data: GroupedTypeRooms;
   }> {
     return {
       message: 'Get type rooms successfully',
@@ -287,7 +288,7 @@ export class DashboardController {
   @AuthDecorator([ERole.ADMIN, ERole.PARTNER])
   async updateTypeRoomByPartnerId(
     @UserDecorator() user,
-    updateTypeRoomDto: UpdateTypeRoomDto,
+    @Body() updateTypeRoomDto: UpdateTypeRoomDto,
     @Param('typeRoomId') typeRoomId: number,
   ): Promise<{
     message: string;
