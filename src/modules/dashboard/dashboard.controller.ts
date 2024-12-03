@@ -42,6 +42,8 @@ import { UpdateHotelDto } from '../hotels/dto/update-hotel.dto';
 import { CreateTypeRoomDto } from '../type_room/dto/create-type-room.dto';
 import { CreateRoomDto } from '../room/dto/create-room.dto';
 import { UpdateTicketDto } from '../tickets/dto/update-ticket.dto';
+import { UploadService } from '../uploads/upload.service';
+import { User } from '../users/entities/user.entity';
 
 @ApiTags('dashboard')
 @Controller('dashboard')
@@ -52,6 +54,7 @@ export class DashboardController {
     private readonly hotelService: HotelService,
     private readonly typeRoomService: TypeRoomService,
     private readonly roomService: RoomService,
+    private readonly uploadService: UploadService,
   ) {}
 
   @Get('tickets')
@@ -189,36 +192,34 @@ export class DashboardController {
             format: 'binary',
           },
         },
-        hotelName: {
-          type: 'string',
-        },
-        address: {
-          type: 'string',
-        },
-        contactPhone: {
-          type: 'string',
-        },
-        description: {
-          type: 'string',
-        },
+        hotelName: { type: 'string' },
+        address: { type: 'string' },
+        contactPhone: { type: 'string' },
+        description: { type: 'string' },
       },
     },
   })
   @UseInterceptors(FilesInterceptor('images', 10, multerOptions.fileFilter))
   async updateHotelByPartnerId(
     @Param('hotelId') hotelId: number,
-    @UserDecorator() user,
+    @UserDecorator() user: User,
     @Body() updateHotelDto: UpdateHotelDto,
-    @UploadedFiles() images: Array<Express.Multer.File>,
-  ): Promise<{
-    message: string;
-    data: Hotel;
-  }> {
+    @UploadedFiles() files?: Array<Express.Multer.File>,
+  ): Promise<{ message: string; data: Hotel }> {
+    if (files?.length) {
+      const uploadedUrls = await Promise.all(
+        files.map((file) => this.uploadService.uploadImage(file)),
+      );
+      updateHotelDto.images = [
+        ...(updateHotelDto.images || []),
+        ...uploadedUrls,
+      ];
+    }
+
     const updatedHotel = await this.hotelService.update(
       hotelId,
       updateHotelDto,
       user,
-      images,
     );
 
     return {

@@ -18,4 +18,14 @@ export class UploadService {
     });
     return result.secure_url;
   }
+  async deleteImage(imageUrl: string): Promise<void> {
+    const publicId = this.getPublicIdFromUrl(imageUrl);
+    await cloudinary.uploader.destroy(publicId);
+  }
+
+  private getPublicIdFromUrl(imageUrl: string): string {
+    const segments = imageUrl.split('/');
+    const filename = segments[segments.length - 1];
+    return filename.split('.')[0];
+  }
 }

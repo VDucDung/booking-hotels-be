@@ -141,15 +141,13 @@ export class HotelService {
     id: number,
     updateHotelDto: UpdateHotelDto,
     user: User,
-    files?: Array<Express.Multer.File>,
   ): Promise<Hotel> {
     const queryRunner = this.connection.createQueryRunner();
-
     await queryRunner.connect();
     await queryRunner.startTransaction();
 
     try {
-      const { favoriteId, typeRoomIds } = updateHotelDto;
+      const { favoriteId, typeRoomIds, images } = updateHotelDto;
 
       const hotel = await this.findOne(id);
       if (!hotel) {
@@ -173,7 +171,7 @@ export class HotelService {
       }
 
       let typeRooms = [];
-      if (typeRoomIds && typeRoomIds.length > 0) {
+      if (typeRoomIds?.length) {
         typeRooms = await this.typeRoomService.find({
           where: { id: In(typeRoomIds) },
         });
@@ -182,19 +180,24 @@ export class HotelService {
         }
       }
 
-      let urls: string[] = hotel.images || [];
-      if (files && files.length > 0) {
-        const uploadPromises = files.map((file) =>
-          this.uploadService.uploadImage(file),
+      let currentImages = hotel.images || [];
+      if (images) {
+        const imagesToKeep = new Set(images);
+        const imagesToDelete = currentImages.filter(
+          (url) => !imagesToKeep.has(url),
         );
-        urls = await Promise.all(uploadPromises);
+
+        await Promise.all(
+          imagesToDelete.map((url) => this.uploadService.deleteImage(url)),
+        );
+        currentImages = Array.from(imagesToKeep);
       }
 
       Object.assign(hotel, {
         ...updateHotelDto,
-        images: urls,
+        images: currentImages,
         favorites: favorite ? [favorite] : hotel.favorites,
-        typeRooms: typeRooms.length > 0 ? typeRooms : hotel.typeRooms,
+        typeRooms: typeRooms.length ? typeRooms : hotel.typeRooms,
       });
 
       const updatedHotel = await queryRunner.manager.save(hotel);
