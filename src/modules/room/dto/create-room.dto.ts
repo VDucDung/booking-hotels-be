@@ -1,6 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsNotEmpty, IsOptional, IsArray, IsNumber } from 'class-validator';
-import { TypeRoom } from 'src/modules/type_room/entities/type_room.entity';
 
 export class OptionDto {
   @IsNotEmpty()
@@ -53,10 +52,10 @@ export class CreateRoomDto {
   @IsNotEmpty()
   @ApiProperty({
     name: 'typeRoomId',
-    type: TypeRoom,
+    type: Number,
     required: true,
   })
-  typeRoomId: TypeRoom;
+  typeRoomId: number;
 
   @IsNotEmpty()
   @IsOptional()

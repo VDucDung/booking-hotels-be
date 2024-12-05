@@ -89,11 +89,9 @@ export class RoomController {
   async create(
     @Body() createRoomDto: CreateRoomDto,
     @UploadedFiles() files: Array<Express.Multer.File>,
-    @UserDecorator() user: { id: number },
+    @UserDecorator() user,
   ): Promise<{ message: string; data: Room }> {
-    createRoomDto.partnerId = user.id;
-
-    const newRoom = await this.roomService.create(createRoomDto, files);
+    const newRoom = await this.roomService.create(user, createRoomDto, files);
 
     return {
       message: this.localesService.translate(ROOM_MESSAGE.CREATE_ROOM_SUCCESS),
@@ -151,7 +149,7 @@ export class RoomController {
   ): Promise<{ message: string; data: Room }> {
     return {
       message: this.localesService.translate(ROOM_MESSAGE.UPDATE_ROOM_SUCCESS),
-      data: await this.roomService.update(id, user, updateRoomDto, file),
+      data: await this.roomService.update(id, user, updateRoomDto),
     };
   }
 

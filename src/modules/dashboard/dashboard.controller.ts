@@ -8,7 +8,6 @@ import {
   Param,
   Post,
   Put,
-  UploadedFile,
   UploadedFiles,
   UseGuards,
   UseInterceptors,
@@ -370,11 +369,9 @@ export class DashboardController {
   async create(
     @Body() createRoomDto: CreateRoomDto,
     @UploadedFiles() files: Array<Express.Multer.File>,
-    @UserDecorator() user: { id: number },
+    @UserDecorator() user,
   ): Promise<{ message: string; data: Room }> {
-    createRoomDto.partnerId = user.id;
-
-    const newRoom = await this.roomService.create(createRoomDto, files);
+    const newRoom = await this.roomService.create(user, createRoomDto, files);
 
     return {
       message: this.localesService.translate(ROOM_MESSAGE.CREATE_ROOM_SUCCESS),
@@ -407,26 +404,57 @@ export class DashboardController {
     schema: {
       type: 'object',
       properties: {
-        file: {
+        images: {
+          type: 'array',
+          items: {
+            type: 'string',
+            format: 'binary',
+          },
+        },
+        roomName: {
           type: 'string',
-          format: 'binary',
+        },
+        description: {
+          type: 'string',
+        },
+        options: {
+          type: 'array',
+          items: {
+            type: 'object',
+            properties: {
+              feature: { type: 'string' },
+              availability: { type: 'boolean' },
+            },
+          },
+        },
+        price: {
+          type: 'number',
+        },
+        typeRoomId: {
+          type: 'number',
         },
       },
     },
   })
-  @UseInterceptors(FilesInterceptor('files', 10, multerOptions.fileFilter))
+  @UseInterceptors(FilesInterceptor('images', 10, multerOptions.fileFilter))
   async updateRoomByPartnerId(
-    @UserDecorator() user,
-    updateRoomDto: UpdateRoomDto,
-    @UploadedFile() file,
     @Param('roomId') roomId: number,
+    @UserDecorator() user: User,
+    @Body() updateRoomDto: UpdateRoomDto,
+    @UploadedFiles() files?: Array<Express.Multer.File>,
   ): Promise<{
     message: string;
     data: Room;
   }> {
+    if (files?.length) {
+      const uploadedUrls = await Promise.all(
+        files.map((file) => this.uploadService.uploadImage(file)),
+      );
+      updateRoomDto.images = [...(updateRoomDto.images || []), ...uploadedUrls];
+    }
     return {
       message: this.localesService.translate(ROOM_MESSAGE.UPDATE_ROOM_SUCCESS),
-      data: await this.roomService.update(roomId, user, updateRoomDto, file),
+      data: await this.roomService.update(roomId, user, updateRoomDto),
     };
   }
 
