@@ -331,7 +331,7 @@ export class DashboardController {
       type: 'object',
       required: ['roomName', 'price', 'typeRoomId'],
       properties: {
-        files: {
+        images: {
           type: 'array',
           items: {
             type: 'string',
@@ -368,13 +368,13 @@ export class DashboardController {
   })
   @ApiBearerAuth()
   @UseGuards(AuthGuard)
-  @UseInterceptors(FilesInterceptor('files', 10, multerOptions.fileFilter))
+  @UseInterceptors(FilesInterceptor('images', 10, multerOptions.fileFilter))
   async create(
     @Body() createRoomDto: CreateRoomDto,
-    @UploadedFiles() files: Array<Express.Multer.File>,
+    @UploadedFiles() images: Array<Express.Multer.File>,
     @UserDecorator() user,
   ): Promise<{ message: string; data: Room }> {
-    const newRoom = await this.roomService.create(user, createRoomDto, files);
+    const newRoom = await this.roomService.create(user, createRoomDto, images);
 
     return {
       message: this.localesService.translate(ROOM_MESSAGE.CREATE_ROOM_SUCCESS),
