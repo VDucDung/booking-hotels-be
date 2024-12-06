@@ -360,6 +360,9 @@ export class DashboardController {
         typeRoomId: {
           type: 'number',
         },
+        capacity: {
+          type: 'number',
+        },
       },
     },
   })
@@ -431,6 +434,9 @@ export class DashboardController {
           type: 'number',
         },
         typeRoomId: {
+          type: 'number',
+        },
+        capacity: {
           type: 'number',
         },
       },

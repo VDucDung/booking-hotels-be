@@ -65,4 +65,7 @@ export class CreateRoomDto {
     required: true,
   })
   partnerId: number;
+
+  @IsNotEmpty()
+  capacity: number;
 }

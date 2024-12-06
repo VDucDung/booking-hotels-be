@@ -68,4 +68,8 @@ export class UpdateRoomDto {
     required: false,
   })
   partnerId?: number;
+
+  @IsNotEmpty()
+  @IsOptional()
+  capacity: number;
 }
