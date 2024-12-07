@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsNotEmpty, IsOptional, IsArray, IsNumber } from 'class-validator';
+import { IsNotEmpty, IsOptional, IsNumber } from 'class-validator';
 
 export class OptionDto {
   @IsNotEmpty()
@@ -30,7 +30,6 @@ export class UpdateRoomDto {
   description?: string;
 
   @IsOptional()
-  @IsArray()
   @ApiProperty({
     name: 'images',
     type: [String],

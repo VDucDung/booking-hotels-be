@@ -161,7 +161,7 @@ export class DashboardController {
   })
   @UseInterceptors(FilesInterceptor('images', 10, multerOptions.fileFilter))
   async createHotelByPartnerId(
-    @UserDecorator() user,
+    @UserDecorator() user: User,
     @Body() createHotelDto: CreateHotelDto,
     @UploadedFiles() images: Array<Express.Multer.File>,
   ): Promise<{
@@ -372,7 +372,7 @@ export class DashboardController {
   async create(
     @Body() createRoomDto: CreateRoomDto,
     @UploadedFiles() images: Array<Express.Multer.File>,
-    @UserDecorator() user,
+    @UserDecorator() user: User,
   ): Promise<{ message: string; data: Room }> {
     const newRoom = await this.roomService.create(user, createRoomDto, images);
 
@@ -407,7 +407,7 @@ export class DashboardController {
     schema: {
       type: 'object',
       properties: {
-        images: {
+        files: {
           type: 'array',
           items: {
             type: 'string',
@@ -433,6 +433,10 @@ export class DashboardController {
         price: {
           type: 'number',
         },
+        images: {
+          type: 'array',
+          items: { type: 'string', format: 'string' },
+        },
         typeRoomId: {
           type: 'number',
         },
@@ -442,7 +446,7 @@ export class DashboardController {
       },
     },
   })
-  @UseInterceptors(FilesInterceptor('images', 10, multerOptions.fileFilter))
+  @UseInterceptors(FilesInterceptor('files', 10, multerOptions.fileFilter))
   async updateRoomByPartnerId(
     @Param('roomId') roomId: number,
     @UserDecorator() user: User,
@@ -452,15 +456,29 @@ export class DashboardController {
     message: string;
     data: Room;
   }> {
+    if (typeof updateRoomDto.images === 'string') {
+      const updateImage = updateRoomDto.images as string;
+      updateRoomDto.images = updateImage.split(',');
+    }
     if (files?.length) {
       const uploadedUrls = await Promise.all(
         files.map((file) => this.uploadService.uploadImage(file)),
       );
-      updateRoomDto.images = [...(updateRoomDto.images || []), ...uploadedUrls];
+      updateRoomDto.images = [...updateRoomDto.images, ...uploadedUrls];
     }
+
+    if (updateRoomDto?.options && typeof updateRoomDto.options === 'string') {
+      updateRoomDto.options = JSON.parse(updateRoomDto.options);
+    }
+
+    const updatedRoom = await this.roomService.update(
+      roomId,
+      user,
+      updateRoomDto,
+    );
     return {
       message: this.localesService.translate(ROOM_MESSAGE.UPDATE_ROOM_SUCCESS),
-      data: await this.roomService.update(roomId, user, updateRoomDto),
+      data: updatedRoom,
     };
   }
 
