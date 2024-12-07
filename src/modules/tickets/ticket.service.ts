@@ -291,4 +291,60 @@ export class TicketService {
     }
     await this.ticketRepository.remove(ticket);
   }
+
+  async getTotalBookings(user: User): Promise<number> {
+    return this.ticketRepository.count({
+      where: { room: { partner: { id: user.id } } },
+    });
+  }
+
+  async getTotalRevenues(user: User): Promise<number> {
+    return this.ticketRepository.sum('amount', {
+      room: {
+        partner: {
+          id: user.id,
+        },
+      },
+      status: 'paid',
+    });
+  }
+
+  async getMonthlyRevenuesAndBookings(user: User): Promise<
+    {
+      year: number;
+      month: number;
+      totalBookings: number;
+      totalRevenue: number;
+    }[]
+  > {
+    const result = await this.ticketRepository
+      .createQueryBuilder('ticket')
+      .innerJoin('ticket.room', 'room')
+      .innerJoin('room.partner', 'partner')
+      .select('EXTRACT(YEAR FROM ticket.createdAt)', 'year')
+      .addSelect('EXTRACT(MONTH FROM ticket.createdAt)', 'month')
+      .addSelect('COUNT(ticket.id)', 'totalBookings')
+      .addSelect('SUM(ticket.amount)', 'totalRevenue')
+      .where('partner.id = :userId', { userId: user.id })
+      .andWhere('ticket.status = :status', { status: 'paid' })
+      .groupBy('year, month')
+      .orderBy('year', 'ASC')
+      .addOrderBy('month', 'ASC')
+      .getRawMany();
+
+    return result.map((item) => ({
+      year: parseInt(item.year),
+      month: parseInt(item.month),
+      totalBookings: parseInt(item.totalBookings),
+      totalRevenue: parseFloat(item.totalRevenue) || 0,
+    }));
+  }
+
+  async getNewBooking(user: User): Promise<Ticket[]> {
+    return this.ticketRepository.find({
+      where: { room: { partner: { id: user.id } } },
+      order: { createdAt: 'DESC' },
+      take: 3,
+    });
+  }
 }

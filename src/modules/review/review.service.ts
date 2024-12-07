@@ -5,7 +5,12 @@ import { Review } from 'src/modules/review/entities/review.entity';
 import { CreateReviewDto } from 'src/modules/review/dto/create-review.dto';
 import { UpdateReviewDto } from 'src/modules/review/dto/update-review.dto';
 import { ErrorHelper } from 'src/common/helpers';
-import { HOTEL_MESSAGE, REVIEW_MESSAGE, USER_MESSAGE } from 'src/messages';
+import {
+  AUTH_MESSAGE,
+  HOTEL_MESSAGE,
+  REVIEW_MESSAGE,
+  USER_MESSAGE,
+} from 'src/messages';
 import { UploadService } from '../uploads/upload.service';
 import { imageDefault } from 'src/constants/image-default.constants';
 import { UserService } from '../users/user.service';
@@ -18,6 +23,7 @@ import {
 } from 'src/interfaces/review.interface';
 import { HasImages } from 'src/enums/review.enum';
 import { LocalesService } from '../locales/locales.service';
+import { User } from '../users/entities/user.entity';
 
 @Injectable()
 export class ReviewService {
@@ -70,6 +76,50 @@ export class ReviewService {
     });
 
     return await this.reviewRepository.save(review);
+  }
+
+  async findRatingByPartnerId(user: User): Promise<Review[]> {
+    return await this.reviewRepository.find({
+      where: {
+        hotelId: {
+          partner: {
+            id: user.id,
+          },
+        },
+      },
+    });
+  }
+
+  async updateReview(
+    id: number,
+    updateReviewDto: UpdateReviewDto,
+    user: User,
+  ): Promise<Review> {
+    const review = await this.reviewRepository.findOne({
+      where: { id },
+      relations: ['userId'],
+    });
+
+    if (!review) {
+      ErrorHelper.NotFoundException(
+        this.localesService.translate(REVIEW_MESSAGE.REVIEW_NOT_FOUND),
+      );
+    }
+
+    if (review.userId.id !== user.id) {
+      ErrorHelper.UnauthorizedException(
+        this.localesService.translate(AUTH_MESSAGE.NO_PERMISSION),
+      );
+    }
+
+    const updateData: Partial<Review> = {
+      ...(updateReviewDto.comment && { comment: updateReviewDto.comment }),
+      ...(updateReviewDto.rating && { rating: updateReviewDto.rating }),
+      ...(updateReviewDto.images && { images: updateReviewDto.images }),
+    };
+
+    const updatedReview = this.reviewRepository.merge(review, updateData);
+    return this.reviewRepository.save(updatedReview);
   }
 
   async findAll(): Promise<Review[]> {
@@ -274,12 +324,18 @@ export class ReviewService {
     });
   }
 
-  async remove(id: number): Promise<void> {
+  async remove(id: number, user: User): Promise<void> {
     const review = await this.findById(id);
 
     if (!review) {
       ErrorHelper.NotFoundException(
         this.localesService.translate(REVIEW_MESSAGE.REVIEW_NOT_FOUND),
+      );
+    }
+
+    if (review.userId.id !== user.id) {
+      ErrorHelper.ForbiddenException(
+        this.localesService.translate(AUTH_MESSAGE.NO_PERMISSION),
       );
     }
 

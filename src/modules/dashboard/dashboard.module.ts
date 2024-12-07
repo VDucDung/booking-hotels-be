@@ -11,6 +11,7 @@ import { JWT } from 'src/constants';
 import { HotelModule } from '../hotels/hotel.module';
 import { TypeRoomModule } from '../type_room/typeRoom.module';
 import { RoomModule } from '../room/room.module';
+import { ReviewModule } from '../review/review.module';
 
 @Module({
   imports: [
@@ -22,6 +23,7 @@ import { RoomModule } from '../room/room.module';
     HotelModule,
     TypeRoomModule,
     RoomModule,
+    ReviewModule,
     JwtModule.register({
       secret: JWT.secretAccess,
       signOptions: { expiresIn: JWT.expiresAccessToken },

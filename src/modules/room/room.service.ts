@@ -141,19 +141,6 @@ export class RoomService {
       await this.typeRoomService.findOne(updateRoomDto.typeRoomId);
     }
 
-    // let currentImages = room.images || [];
-    // if (updateRoomDto?.images) {
-    //   const imagesToKeep = new Set(updateRoomDto.images);
-    //   const imagesToDelete = currentImages.filter(
-    //     (url) => !imagesToKeep.has(url),
-    //   );
-
-    //   await Promise.all(
-    //     imagesToDelete.map((url) => this.uploadService.deleteImage(url)),
-    //   );
-    //   currentImages = Array.from(imagesToKeep);
-    // }
-
     Object.assign(room, updateRoomDto);
     return await this.roomRepository.save(room);
   }

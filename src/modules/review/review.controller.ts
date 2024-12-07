@@ -33,6 +33,7 @@ import { FilesInterceptor } from '@nestjs/platform-express';
 import { multerOptions } from '../uploads/options/multer.option';
 import { HasImages } from 'src/enums/review.enum';
 import { ReviewFilterDto } from './dto/review-filter.dto';
+import { User } from '../users/entities/user.entity';
 
 @ApiTags('reviews')
 @Controller('reviews')
@@ -186,8 +187,11 @@ export class ReviewController {
   })
   @ApiResponse({ status: 200, description: 'Review deleted successfully.' })
   @ApiResponse({ status: 404, description: 'Review not found.' })
-  async remove(@Param('id') id: number): Promise<{ message: string }> {
-    await this.reviewService.remove(id);
+  async remove(
+    @Param('id') id: number,
+    @UserDecorator() user: User,
+  ): Promise<{ message: string }> {
+    await this.reviewService.remove(id, user);
 
     return {
       message: this.localesService.translate(

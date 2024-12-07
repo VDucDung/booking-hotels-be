@@ -21,6 +21,7 @@ import { Ticket } from '../tickets/entities/ticket.entity';
 import { LocalesService } from '../locales/locales.service';
 import {
   HOTEL_MESSAGE,
+  REVIEW_MESSAGE,
   ROOM_MESSAGE,
   TICKET_MESSAGE,
   TYPE_ROOM_MESSAGE,
@@ -44,6 +45,10 @@ import { UpdateTicketDto } from '../tickets/dto/update-ticket.dto';
 import { UploadService } from '../uploads/upload.service';
 import { User } from '../users/entities/user.entity';
 import { GroupedTypeRooms } from 'src/interfaces/typeRoom.interface';
+import { CreateReviewDto } from '../review/dto/create-review.dto';
+import { ReviewService } from '../review/review.service';
+import { Review } from '../review/entities/review.entity';
+import { UpdateReviewDto } from '../review/dto/update-review.dto';
 
 @ApiTags('dashboard')
 @Controller('dashboard')
@@ -55,6 +60,7 @@ export class DashboardController {
     private readonly typeRoomService: TypeRoomService,
     private readonly roomService: RoomService,
     private readonly uploadService: UploadService,
+    private readonly reviewService: ReviewService,
   ) {}
 
   @Get('tickets')
@@ -495,6 +501,146 @@ export class DashboardController {
     await this.roomService.remove(roomId, user);
     return {
       message: this.localesService.translate(ROOM_MESSAGE.DELETE_ROOM_SUCCESS),
+    };
+  }
+
+  @Get('total-bookings')
+  @ApiBearerAuth()
+  @UseGuards(AuthGuard)
+  @AuthDecorator([ERole.ADMIN, ERole.PARTNER])
+  async getTotalBookings(@UserDecorator() user): Promise<{
+    message: string;
+    data: number;
+  }> {
+    return {
+      message: 'Get total bookings successfully!',
+      data: await this.ticketService.getTotalBookings(user),
+    };
+  }
+
+  @Get('total-revenue')
+  @ApiBearerAuth()
+  @UseGuards(AuthGuard)
+  @AuthDecorator([ERole.ADMIN, ERole.PARTNER])
+  async getTotalRevenues(@UserDecorator() user: User): Promise<{
+    message: string;
+    data: number;
+  }> {
+    return {
+      message: 'Get total revenues successfully!',
+      data: await this.ticketService.getTotalRevenues(user),
+    };
+  }
+
+  @Get('monthly-stats')
+  @ApiBearerAuth()
+  @UseGuards(AuthGuard)
+  @AuthDecorator([ERole.ADMIN, ERole.PARTNER])
+  async getMonthlyStats(@UserDecorator() user: User) {
+    return this.ticketService.getMonthlyRevenuesAndBookings(user);
+  }
+  @Get('new-booking')
+  @ApiBearerAuth()
+  @UseGuards(AuthGuard)
+  @AuthDecorator([ERole.ADMIN, ERole.PARTNER])
+  async getNewBooking(@UserDecorator() user: User): Promise<{
+    message: string;
+    data: Ticket[];
+  }> {
+    return {
+      message: 'Get total revenues successfully!',
+      data: await this.ticketService.getNewBooking(user),
+    };
+  }
+
+  @Post('reviews')
+  @UseGuards(AuthGuard)
+  @ApiBearerAuth()
+  @ApiConsumes('multipart/form-data')
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        files: {
+          type: 'array',
+          items: {
+            type: 'string',
+            format: 'binary',
+          },
+        },
+        comment: {
+          type: 'string',
+        },
+        hotelId: {
+          type: 'number',
+        },
+        rating: {
+          type: 'number',
+        },
+      },
+    },
+  })
+  @UseInterceptors(FilesInterceptor('files', 10, multerOptions.fileFilter))
+  async createRating(
+    @UserDecorator() user: User,
+    @Body() createReviewDto: CreateReviewDto,
+    @UploadedFiles() files: Array<Express.Multer.File>,
+  ) {
+    createReviewDto.userId = user.id;
+    return {
+      message: this.localesService.translate(
+        REVIEW_MESSAGE.CREATE_REVIEW_SUCCESS,
+      ),
+      data: await this.reviewService.create(createReviewDto, files),
+    };
+  }
+
+  @Get('reviews')
+  @UseGuards(AuthGuard)
+  @ApiBearerAuth()
+  async findRatingByPartnerId(
+    @UserDecorator() user: User,
+  ): Promise<{ message: string; data: Review[] }> {
+    return {
+      message: this.localesService.translate(
+        REVIEW_MESSAGE.GET_LIST_REVIEW_SUCCESS,
+      ),
+      data: await this.reviewService.findRatingByPartnerId(user),
+    };
+  }
+
+  @Put('reviews/:reviewId')
+  @UseGuards(AuthGuard)
+  @ApiBearerAuth()
+  async updateRating(
+    @UserDecorator() user: User,
+    @Param('reviewId') reviewId: number,
+    @Body() updateReviewDto: UpdateReviewDto,
+  ) {
+    return {
+      message: this.localesService.translate(
+        REVIEW_MESSAGE.UPDATE_REVIEW_SUCCESS,
+      ),
+      data: await this.reviewService.updateReview(
+        reviewId,
+        updateReviewDto,
+        user,
+      ),
+    };
+  }
+
+  @Delete('reviews/:reviewId')
+  @UseGuards(AuthGuard)
+  @ApiBearerAuth()
+  async removeRating(
+    @UserDecorator() user: User,
+    @Param('reviewId') reviewId: number,
+  ) {
+    return {
+      message: this.localesService.translate(
+        REVIEW_MESSAGE.DELETE_REVIEW_SUCCESS,
+      ),
+      data: await this.reviewService.remove(reviewId, user),
     };
   }
 }

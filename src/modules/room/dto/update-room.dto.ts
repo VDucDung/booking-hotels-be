@@ -38,6 +38,9 @@ export class UpdateRoomDto {
   images?: string[];
 
   @IsOptional()
+  files?: string[];
+
+  @IsOptional()
   options?: OptionDto[];
 
   @IsNotEmpty()
