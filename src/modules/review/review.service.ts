@@ -62,12 +62,7 @@ export class ReviewService {
     if (!user) {
       ErrorHelper.NotFoundException(USER_MESSAGE.USER_NOT_FOUND);
     }
-
     const hotel = await this.hotelService.findOne(createReviewDto.hotelId);
-
-    if (hotel) {
-      ErrorHelper.NotFoundException(HOTEL_MESSAGE.HOTEL_NOT_FOUND);
-    }
 
     const review = this.reviewRepository.create({
       ...createReviewDto,
@@ -75,7 +70,10 @@ export class ReviewService {
       hotelId: hotel,
     });
 
-    return await this.reviewRepository.save(review);
+    await this.reviewRepository.save(review);
+    delete review.userId;
+    delete review.hotelId;
+    return review;
   }
 
   async findRatingByPartnerId(user: User): Promise<Review[]> {
@@ -333,14 +331,7 @@ export class ReviewService {
 
   async remove(id: number, user: User): Promise<void> {
     const review = await this.findById(id);
-
-    if (!review) {
-      ErrorHelper.NotFoundException(
-        this.localesService.translate(REVIEW_MESSAGE.REVIEW_NOT_FOUND),
-      );
-    }
-
-    if (review.userId.id !== user.id) {
+    if (review.hotelId.partner.id !== user.id) {
       ErrorHelper.ForbiddenException(
         this.localesService.translate(AUTH_MESSAGE.NO_PERMISSION),
       );

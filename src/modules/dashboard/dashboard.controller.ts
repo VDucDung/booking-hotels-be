@@ -568,6 +568,9 @@ export class DashboardController {
             format: 'binary',
           },
         },
+        customerName: {
+          type: 'string',
+        },
         comment: {
           type: 'string',
         },

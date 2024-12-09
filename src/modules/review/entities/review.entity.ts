@@ -27,6 +27,9 @@ export class Review {
   @JoinColumn({ name: 'hotel_id' })
   hotelId: Hotel;
 
+  @Column({ type: 'varchar', length: 50, nullable: true, default: 'guest' })
+  customerName: string;
+
   @Column({ type: 'varchar', length: 255 })
   comment: string;
 
