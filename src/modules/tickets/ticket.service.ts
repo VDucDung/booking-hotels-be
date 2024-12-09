@@ -184,14 +184,8 @@ export class TicketService {
   }
 
   async findTicketByPartnerId(userId: number): Promise<Ticket[]> {
-    const room = await this.roomService.findByPartnerId(userId);
-
     const ticket = await this.ticketRepository.find({
-      where: {
-        room: {
-          id: room.id,
-        },
-      },
+      where: { room: { partner: { id: userId } } },
       relations: ['room'],
       select: {
         room: {
