@@ -87,6 +87,13 @@ export class ReviewService {
           },
         },
       },
+      relations: ['hotelId'],
+      select: {
+        hotelId: {
+          id: true,
+          hotelName: true,
+        },
+      },
     });
   }
 
