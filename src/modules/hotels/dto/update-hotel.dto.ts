@@ -34,9 +34,15 @@ export class UpdateHotelDto {
   description?: string;
 
   @IsOptional()
-  @IsArray()
-  @ApiProperty({ name: 'images', type: [String], required: false })
+  @ApiProperty({
+    name: 'images',
+    type: [String],
+    required: false,
+  })
   images?: string[];
+
+  @IsOptional()
+  files?: string[];
 
   @IsOptional()
   @IsNotEmpty({ message: i18nValidationMessage(COMMON_MESSAGE.NOT_EMPTY) })

@@ -191,7 +191,7 @@ export class DashboardController {
     schema: {
       type: 'object',
       properties: {
-        images: {
+        files: {
           type: 'array',
           items: {
             type: 'string',
@@ -202,24 +202,29 @@ export class DashboardController {
         address: { type: 'string' },
         contactPhone: { type: 'string' },
         description: { type: 'string' },
+        images: {
+          type: 'array',
+          items: { type: 'string', format: 'string' },
+        },
       },
     },
   })
-  @UseInterceptors(FilesInterceptor('images', 10, multerOptions.fileFilter))
+  @UseInterceptors(FilesInterceptor('files', 10, multerOptions.fileFilter))
   async updateHotelByPartnerId(
     @Param('hotelId') hotelId: number,
     @UserDecorator() user: User,
     @Body() updateHotelDto: UpdateHotelDto,
     @UploadedFiles() files?: Array<Express.Multer.File>,
   ): Promise<{ message: string; data: Hotel }> {
+    if (typeof updateHotelDto.images === 'string') {
+      const updateImage = updateHotelDto.images as string;
+      updateHotelDto.images = updateImage.split(',');
+    }
     if (files?.length) {
       const uploadedUrls = await Promise.all(
         files.map((file) => this.uploadService.uploadImage(file)),
       );
-      updateHotelDto.images = [
-        ...(updateHotelDto.images || []),
-        ...uploadedUrls,
-      ];
+      updateHotelDto.images = [...updateHotelDto.images, ...uploadedUrls];
     }
 
     const updatedHotel = await this.hotelService.update(
