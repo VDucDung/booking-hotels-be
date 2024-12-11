@@ -6,7 +6,6 @@ import { TypeUtilityService } from './type_utility.service';
 import { LocalesModule } from '../locales/locales.module';
 import { JwtModule } from '@nestjs/jwt';
 import { JWT } from 'src/constants';
-import { PermissionsModule } from '../permissions/permissions.module';
 import { UserModule } from '../users/user.module';
 import { HotelModule } from '../hotels/hotel.module';
 
@@ -19,7 +18,6 @@ import { HotelModule } from '../hotels/hotel.module';
       signOptions: { expiresIn: JWT.expiresAccessToken },
     }),
     UserModule,
-    PermissionsModule,
     HotelModule,
   ],
   controllers: [TypeUtilityController],

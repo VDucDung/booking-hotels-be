@@ -1,44 +1,26 @@
 import { Injectable } from '@nestjs/common';
 import { LIMIT_DEFAULT, SORT_DEFAULT } from 'src/constants';
 import { IPagination } from 'src/interfaces/response.interface';
-import { PERMISSION_MESSAGE } from 'src/messages';
 import { LocalesService } from '../locales/locales.service';
-import { PermissionsService } from '../permissions/permissions.service';
 import { CommonHelper } from 'src/helpers/common.helper';
 import { CreateRoleDto } from './dto/create-role.dto';
 import { Role } from './entities/role.entity';
 import { ErrorHelper } from 'src/common/helpers';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, Not, ILike, In, Like, FindOptionsOrder } from 'typeorm';
+import { Repository, Not, ILike, Like, FindOptionsOrder } from 'typeorm';
 import { ROLE_MESSAGE } from 'src/messages/role.message';
 import { UpdateRoleDto } from './dto/update-role.dto';
 import { GetRolesDto } from './dto/get-roles.dto';
-import { Permission } from '../permissions/entities/permission.entity';
 
 @Injectable()
 export class RoleService {
   constructor(
     @InjectRepository(Role)
     private roleRepository: Repository<Role>,
-    @InjectRepository(Permission)
-    private readonly permissionRepository: Repository<Permission>,
     private localesService: LocalesService,
-    private permissionsService: PermissionsService,
   ) {}
 
   async createRole(payload: CreateRoleDto): Promise<Role> {
-    const permissions = await this.permissionsService.findMany(
-      payload.permissionIds,
-    );
-
-    if (permissions.length !== payload.permissionIds.length) {
-      ErrorHelper.BadRequestException(
-        this.localesService.translate(
-          PERMISSION_MESSAGE.PERMISSION_IDS_INVALID,
-        ),
-      );
-    }
-
     const existingRole = await this.roleRepository.findOne({
       where: {
         name: payload.name,
@@ -72,19 +54,8 @@ export class RoleService {
       );
     }
 
-    const permissions = await this.permissionRepository.findBy({
-      id: In(payload.permissionIds),
-    });
-
-    if (permissions.length !== payload.permissionIds.length) {
-      throw new ErrorHelper.NotFoundException(
-        this.localesService.translate(PERMISSION_MESSAGE.PERMISSION_NOT_FOUND),
-      );
-    }
-
     await this.roleRepository.update(roleId, {
       ...payload,
-      permissionIds: permissions.map((permission) => permission.id),
     });
 
     const updatedRole = await this.roleRepository.findOne({

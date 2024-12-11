@@ -5,14 +5,13 @@ import { LocalesModule } from '../locales/locales.module';
 import { EmailModule } from '../email/email.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { User } from './entities/user.entity';
-import { PermissionsModule } from '../permissions/permissions.module';
 import { JwtModule } from '@nestjs/jwt';
 import { AuthModule } from '../auth/auth.module';
 import { JWT } from 'src/constants';
 import { Role } from '../roles/entities/role.entity';
 import { UploadModule } from '../uploads/upload.module';
 import { AuthProviderModule } from '../auth_provider/authProvider.module';
-import { TransactionsModule } from 'src/transactions/transactions.module';
+import { TransactionsModule } from 'src/modules/transactions/transactions.module';
 
 @Module({
   imports: [
@@ -20,7 +19,6 @@ import { TransactionsModule } from 'src/transactions/transactions.module';
     EmailModule,
     UploadModule,
     forwardRef(() => TransactionsModule),
-    forwardRef(() => PermissionsModule),
     TypeOrmModule.forFeature([User]),
     TypeOrmModule.forFeature([Role]),
     JwtModule.register({

@@ -24,7 +24,7 @@ import { Role } from '../roles/entities/role.entity';
 import { UploadService } from '../uploads/upload.service';
 import { AuthProviderService } from '../auth_provider/authProvider.service';
 import { StripeAccountStatus } from 'src/interfaces/stripe.interface';
-import { TransactionService } from 'src/transactions/transactions.service';
+import { TransactionService } from 'src/modules/transactions/transactions.service';
 import { TransactionType } from 'src/enums/transaction.enum';
 
 @Injectable()

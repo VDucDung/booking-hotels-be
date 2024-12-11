@@ -3,7 +3,7 @@ import { ErrorHelper } from 'src/common/helpers';
 import { TransactionStatus, TransactionType } from 'src/enums/transaction.enum';
 import { USER_MESSAGE } from 'src/messages';
 import { UserService } from 'src/modules/users/user.service';
-import { TransactionService } from 'src/transactions/transactions.service';
+import { TransactionService } from 'src/modules/transactions/transactions.service';
 
 @Injectable()
 export class WalletsService {

@@ -7,7 +7,6 @@ import { JwtModule } from '@nestjs/jwt';
 import { JWT } from 'src/constants';
 import { LocalesModule } from '../locales/locales.module';
 import { UserModule } from '../users/user.module';
-import { PermissionsModule } from '../permissions/permissions.module';
 import { TypeUtilityModule } from '../type_utility/type_utility.module';
 
 @Module({
@@ -19,7 +18,6 @@ import { TypeUtilityModule } from '../type_utility/type_utility.module';
     }),
     LocalesModule,
     UserModule,
-    PermissionsModule,
     TypeUtilityModule,
   ],
   controllers: [UtilityController],

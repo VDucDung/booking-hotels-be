@@ -22,7 +22,6 @@ import { ROLE_MESSAGE } from 'src/messages/role.message';
 import { UpdateRoleDto } from './dto/update-role.dto';
 import { GetRolesDto } from './dto/get-roles.dto';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
 import { Role } from './entities/role.entity';
 
 @ApiHeader({
@@ -35,7 +34,6 @@ import { Role } from './entities/role.entity';
 export class RoleController {
   constructor(
     @InjectRepository(Role)
-    private roleRepository: Repository<Role>,
     private readonly rolesService: RoleService,
     private readonly localesService: LocalesService,
   ) {}

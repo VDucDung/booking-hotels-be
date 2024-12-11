@@ -16,9 +16,6 @@ export class Role {
   @Column({ type: 'varchar', length: 30, unique: true })
   name: string;
 
-  @Column('int', { array: true, default: [] })
-  permissionIds: number[];
-
   @CreateDateColumn({ name: 'created_at' })
   createdAt: Date;
 

@@ -8,7 +8,6 @@ import { UserModule } from '../users/user.module';
 import { LocalesModule } from '../locales/locales.module';
 import { JwtModule } from '@nestjs/jwt';
 import { JWT } from 'src/constants';
-import { PermissionsModule } from '../permissions/permissions.module';
 import { AuthModule } from '../auth/auth.module';
 
 @Module({
@@ -16,7 +15,6 @@ import { AuthModule } from '../auth/auth.module';
     TypeOrmModule.forFeature([AuthProvider]),
     forwardRef(() => UserModule),
     forwardRef(() => AuthModule),
-    forwardRef(() => PermissionsModule),
     forwardRef(() => LocalesModule),
     JwtModule.register({
       secret: JWT.secretAccess,

@@ -18,7 +18,7 @@ import { User } from '../users/entities/user.entity';
 import { UserDecorator } from 'src/common/decorators/user.decorator';
 import Stripe from 'stripe';
 import { ErrorHelper } from 'src/common/helpers';
-import { TransactionService } from 'src/transactions/transactions.service';
+import { TransactionService } from 'src/modules/transactions/transactions.service';
 import { TransactionStatus } from 'src/enums/transaction.enum';
 import { UserService } from '../users/user.service';
 import { TicketService } from '../tickets/ticket.service';

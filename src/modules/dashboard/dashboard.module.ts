@@ -4,7 +4,6 @@ import { DashboardService } from './dashboard.service';
 import { TicketModule } from '../tickets/ticket.module';
 import { LocalesModule } from '../locales/locales.module';
 import { UploadModule } from '../uploads/upload.module';
-import { PermissionsModule } from '../permissions/permissions.module';
 import { UserModule } from '../users/user.module';
 import { JwtModule } from '@nestjs/jwt';
 import { JWT } from 'src/constants';
@@ -18,7 +17,6 @@ import { ReviewModule } from '../review/review.module';
     TicketModule,
     LocalesModule,
     UploadModule,
-    PermissionsModule,
     UserModule,
     HotelModule,
     TypeRoomModule,

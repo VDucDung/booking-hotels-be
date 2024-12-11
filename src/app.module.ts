@@ -30,8 +30,8 @@ import { UtilityModule } from './modules/utilities/utility.module';
 import { TypeUtilityModule } from './modules/type_utility/type_utility.module';
 import { ReviewReplyModule } from './modules/review_reply/review_reply.module';
 import { StripeModule } from './modules/stripe/stripe.module';
-import { TransactionsModule } from './transactions/transactions.module';
-import { WalletsModule } from './wallets/wallets.module';
+import { TransactionsModule } from './modules/transactions/transactions.module';
+import { WalletsModule } from './modules/wallets/wallets.module';
 import { DashboardModule } from './modules/dashboard/dashboard.module';
 
 @Module({

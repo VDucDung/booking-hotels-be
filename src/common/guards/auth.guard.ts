@@ -10,7 +10,6 @@ import { Request } from 'express';
 import { JWT } from 'src/constants';
 import { AUTH_MESSAGE, USER_MESSAGE } from 'src/messages';
 import { LocalesService } from 'src/modules/locales/locales.service';
-import { PermissionsService } from 'src/modules/permissions/permissions.service';
 import { UserService } from 'src/modules/users/user.service';
 import { ErrorHelper } from '../helpers';
 
@@ -20,8 +19,6 @@ export class AuthGuard implements CanActivate {
     private readonly jwtService: JwtService,
     @Inject(forwardRef(() => UserService))
     private readonly userService: UserService,
-    @Inject(forwardRef(() => PermissionsService))
-    private readonly permissionsService: PermissionsService,
     @Inject(forwardRef(() => LocalesService))
     private readonly localesService: LocalesService,
   ) {}

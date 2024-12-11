@@ -1,7 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ErrorHelper } from 'src/common/helpers';
 import { TransactionType } from 'src/enums/transaction.enum';
-import { TransactionService } from 'src/transactions/transactions.service';
+import { TransactionService } from 'src/modules/transactions/transactions.service';
 import Stripe from 'stripe';
 import { TicketService } from '../tickets/ticket.service';
 import { User } from '../users/entities/user.entity';

@@ -5,7 +5,6 @@ import { Review } from './entities/review.entity';
 import { LocalesModule } from '../locales/locales.module';
 import { ReviewController } from './review.controller';
 import { UploadModule } from '../uploads/upload.module';
-import { PermissionsModule } from '../permissions/permissions.module';
 import { UserModule } from '../users/user.module';
 import { JwtModule } from '@nestjs/jwt';
 import { JWT } from 'src/constants';
@@ -16,7 +15,6 @@ import { HotelModule } from '../hotels/hotel.module';
     TypeOrmModule.forFeature([Review]),
     LocalesModule,
     UploadModule,
-    PermissionsModule,
     UserModule,
     HotelModule,
     UserModule,

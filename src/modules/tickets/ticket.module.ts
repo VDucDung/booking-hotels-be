@@ -8,7 +8,6 @@ import { RoomModule } from '../room/room.module';
 import { UserModule } from '../users/user.module';
 import { JwtModule } from '@nestjs/jwt';
 import { JWT } from 'src/constants';
-import { PermissionsModule } from '../permissions/permissions.module';
 
 @Module({
   imports: [
@@ -16,7 +15,6 @@ import { PermissionsModule } from '../permissions/permissions.module';
     LocalesModule,
     RoomModule,
     UserModule,
-    PermissionsModule,
     JwtModule.register({
       secret: JWT.secretAccess,
       signOptions: { expiresIn: JWT.expiresAccessToken },

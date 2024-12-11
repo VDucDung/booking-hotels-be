@@ -8,7 +8,6 @@ import { User } from '../users/entities/user.entity';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { EmailModule } from '../email/email.module';
 import { JWT } from 'src/constants';
-import { PermissionsModule } from '../permissions/permissions.module';
 import { LocalesModule } from '../locales/locales.module';
 import { AuthProviderModule } from '../auth_provider/authProvider.module';
 import { RoleModule } from '../roles/role.module';
@@ -16,7 +15,6 @@ import { RoleModule } from '../roles/role.module';
 @Module({
   imports: [
     forwardRef(() => UserModule),
-    forwardRef(() => PermissionsModule),
     forwardRef(() => AuthProviderModule),
     CryptoModule,
     JwtModule.register({

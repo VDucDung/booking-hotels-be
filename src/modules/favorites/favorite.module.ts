@@ -7,7 +7,6 @@ import { User } from 'src/modules/users/entities/user.entity';
 import { JwtModule } from '@nestjs/jwt';
 import { JWT } from 'src/constants';
 import { AuthModule } from '../auth/auth.module';
-import { PermissionsModule } from '../permissions/permissions.module';
 import { LocalesModule } from '../locales/locales.module';
 import { UserModule } from '../users/user.module';
 import { HotelModule } from '../hotels/hotel.module';
@@ -20,7 +19,6 @@ import { HotelModule } from '../hotels/hotel.module';
       signOptions: { expiresIn: JWT.expiresAccessToken },
     }),
     forwardRef(() => AuthModule),
-    PermissionsModule,
     LocalesModule,
     UserModule,
     forwardRef(() => HotelModule),

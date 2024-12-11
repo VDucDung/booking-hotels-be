@@ -6,7 +6,6 @@ import { ReviewReplyService } from './review_reply.service';
 import { JwtModule } from '@nestjs/jwt';
 import { JWT } from 'src/constants';
 import { LocalesModule } from '../locales/locales.module';
-import { PermissionsModule } from '../permissions/permissions.module';
 import { UserModule } from '../users/user.module';
 import { ReviewModule } from '../review/review.module';
 
@@ -14,7 +13,6 @@ import { ReviewModule } from '../review/review.module';
   imports: [
     TypeOrmModule.forFeature([ReviewReply]),
     UserModule,
-    PermissionsModule,
     LocalesModule,
     ReviewModule,
     JwtModule.register({

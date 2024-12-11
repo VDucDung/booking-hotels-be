@@ -6,7 +6,6 @@ import { CategoryController } from './category.controller';
 import { JWT } from 'src/constants';
 import { JwtModule } from '@nestjs/jwt';
 import { UserModule } from '../users/user.module';
-import { PermissionsModule } from '../permissions/permissions.module';
 import { LocalesModule } from '../locales/locales.module';
 import { UploadModule } from '../uploads/upload.module';
 
@@ -19,7 +18,6 @@ import { UploadModule } from '../uploads/upload.module';
     }),
     LocalesModule,
     UserModule,
-    PermissionsModule,
     UploadModule,
   ],
   providers: [CategoryService],
