@@ -33,6 +33,7 @@ import { FileInterceptor, FilesInterceptor } from '@nestjs/platform-express';
 import { EUserPermission } from 'src/enums/roles.enum';
 import { multerOptions } from '../uploads/options/multer.option';
 import { UserDecorator } from 'src/common/decorators/user.decorator';
+import { User } from '../users/entities/user.entity';
 
 @ApiTags('rooms')
 @Controller('rooms')
@@ -89,7 +90,7 @@ export class RoomController {
   async create(
     @Body() createRoomDto: CreateRoomDto,
     @UploadedFiles() files: Array<Express.Multer.File>,
-    @UserDecorator() user,
+    @UserDecorator() user: User,
   ): Promise<{ message: string; data: Room }> {
     const newRoom = await this.roomService.create(user, createRoomDto, files);
 

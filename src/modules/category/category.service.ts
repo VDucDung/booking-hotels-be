@@ -9,6 +9,9 @@ import { LocalesService } from '../locales/locales.service';
 import { CATEGORY_MESSAGE } from 'src/messages/category.message';
 import { UploadService } from '../uploads/upload.service';
 import { imageDefault } from 'src/constants/image-default.constants';
+import { User } from '../users/entities/user.entity';
+import { UserService } from '../users/user.service';
+import { USER_MESSAGE } from 'src/messages';
 @Injectable()
 export class CategoryService {
   constructor(
@@ -18,11 +21,14 @@ export class CategoryService {
     private readonly localdesService: LocalesService,
 
     private readonly uploadService: UploadService,
+
+    private readonly userService: UserService,
   ) {}
 
   async create(
     createCategoryDto: CreateCategoryDto,
     file: File,
+    user: User,
   ): Promise<Category> {
     const categoryExist = await this.getCategoryByName(createCategoryDto.name);
     if (categoryExist) {
@@ -30,12 +36,21 @@ export class CategoryService {
         this.localdesService.translate(CATEGORY_MESSAGE.CATEGORY_EXISTED),
       );
     }
+    const userId = await this.userService.getUserById(user.id);
+    if (!userId) {
+      ErrorHelper.NotFoundException(USER_MESSAGE.USER_NOT_FOUND);
+    }
+
     let url = imageDefault;
     if (file) {
       url = await this.uploadService.uploadImage(file);
     }
-    createCategoryDto.image = url;
-    const category = await this.categoryRepository.create(createCategoryDto);
+
+    const category = await this.categoryRepository.create({
+      ...createCategoryDto,
+      image: url,
+      userId,
+    });
     return await this.categoryRepository.save(category);
   }
 

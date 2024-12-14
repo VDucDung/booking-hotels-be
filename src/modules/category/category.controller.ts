@@ -26,6 +26,8 @@ import { LocalesService } from '../locales/locales.service';
 import { ErrorHelper } from 'src/common/helpers';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { multerOptions } from '../uploads/options/multer.option';
+import { User } from '../users/entities/user.entity';
+import { UserDecorator } from 'src/common/decorators/user.decorator';
 
 @Controller('categories')
 @ApiTags('categories')
@@ -59,13 +61,14 @@ export class CategoryController {
   async create(
     @Body() createCategoryDto: CreateCategoryDto,
     @UploadedFile() file,
+    @UserDecorator() user: User,
   ): Promise<{ statusCode: number; message: string; data: Category }> {
     return {
       statusCode: HttpStatus.CREATED,
       message: this.localesService.translate(
         CATEGORY_MESSAGE.CREATE_CATEGORY_SUCCESS,
       ),
-      data: await this.categoryService.create(createCategoryDto, file),
+      data: await this.categoryService.create(createCategoryDto, file, user),
     };
   }
 
