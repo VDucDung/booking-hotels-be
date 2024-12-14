@@ -382,8 +382,14 @@ export class UserService {
 
     const user = await this.getUserById(userId);
     if (!(await user.isPasswordMatch(oldPassword))) {
-      ErrorHelper.UnauthorizedException(
+      ErrorHelper.BadRequestException(
         this.localesService.translate(USER_MESSAGE.INVALID_PASSWORD),
+      );
+    }
+
+    if (oldPassword === newPassword) {
+      ErrorHelper.BadRequestException(
+        'The new password is entering the same current password',
       );
     }
 
