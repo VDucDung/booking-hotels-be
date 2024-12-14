@@ -11,7 +11,7 @@ import { UploadService } from '../uploads/upload.service';
 import { imageDefault } from 'src/constants/image-default.constants';
 import { User } from '../users/entities/user.entity';
 import { UserService } from '../users/user.service';
-import { USER_MESSAGE } from 'src/messages';
+import { AUTH_MESSAGE, USER_MESSAGE } from 'src/messages';
 @Injectable()
 export class CategoryService {
   constructor(
@@ -77,8 +77,14 @@ export class CategoryService {
     id: number,
     updateCategoryDto: UpdateCategoryDto,
     file: File,
+    user: User,
   ): Promise<Category> {
     const category = await this.findOne(id);
+    if (category.userId.id !== user.id) {
+      ErrorHelper.BadRequestException(
+        this.localdesService.translate(AUTH_MESSAGE.NO_PERMISSION),
+      );
+    }
     let url = category.image;
     if (file) {
       url = await this.uploadService.uploadImage(file);
@@ -88,7 +94,14 @@ export class CategoryService {
     return await this.categoryRepository.save(category);
   }
 
-  async remove(id: number): Promise<boolean> {
+  async remove(id: number, user: User): Promise<boolean> {
+    const category = await this.findOne(id);
+    if (category.userId.id !== user.id) {
+      ErrorHelper.BadRequestException(
+        this.localdesService.translate(AUTH_MESSAGE.NO_PERMISSION),
+      );
+    }
+
     const result = await this.categoryRepository.delete(id);
     if (result.affected === 0) {
       return false;

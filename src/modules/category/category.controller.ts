@@ -126,6 +126,7 @@ export class CategoryController {
     @Param('id', ParseIntPipe) id: number,
     @Body() updateCategoryDto: UpdateCategoryDto,
     @UploadedFile() file,
+    @UserDecorator() user: User,
   ): Promise<{
     statusCode: number;
     message: string;
@@ -136,7 +137,12 @@ export class CategoryController {
       message: this.localesService.translate(
         CATEGORY_MESSAGE.UPDATE_CATEGORY_SUCCESS,
       ),
-      data: await this.categoryService.update(id, updateCategoryDto, file),
+      data: await this.categoryService.update(
+        id,
+        updateCategoryDto,
+        file,
+        user,
+      ),
     };
   }
 
@@ -146,8 +152,9 @@ export class CategoryController {
   @PermissionDecorator(EUserPermission.DELETE_CATEGORY)
   async remove(
     @Param('id', ParseIntPipe) id: number,
+    @UserDecorator() user: User,
   ): Promise<{ statusCode: number; messsage: string }> {
-    const category = await this.categoryService.remove(id);
+    const category = await this.categoryService.remove(id, user);
     if (!category) {
       ErrorHelper.BadRequestException(
         this.localesService.translate(CATEGORY_MESSAGE.DELETE_CATEGORY_FAIL),
