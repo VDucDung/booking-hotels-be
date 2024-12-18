@@ -75,14 +75,10 @@ export class FavoriteService {
 
   async findAll(userId: number): Promise<Favorite[]> {
     const user = await this.userService.getUserById(userId);
-    if (!user) {
-      ErrorHelper.NotFoundException(
-        this.localesService.translate(USER_MESSAGE.USER_NOT_FOUND),
-      );
-    }
+
     return await this.favoriteRepository.find({
-      where: { user: { id: userId } },
-      relations: ['hotelId'],
+      where: { user: { id: user.id } },
+      relations: ['hotel'],
     });
   }
   async getFavoriteHotels(

@@ -249,6 +249,7 @@ export class HotelService {
       .createQueryBuilder('hotel')
       .leftJoin('hotel.reviews', 'reviews')
       .leftJoinAndSelect('hotel.favorites', 'favorites')
+      .leftJoinAndSelect('favorites.user', 'user')
       .leftJoinAndSelect('hotel.typeRooms', 'typeRooms')
       .leftJoinAndSelect('typeRooms.rooms', 'rooms')
       .select([
@@ -264,6 +265,7 @@ export class HotelService {
         'hotel.deleted',
         'hotel.partner',
         'favorites.id',
+        'user.id',
         'favorites.user',
         'typeRooms',
         'rooms.id',
@@ -277,6 +279,7 @@ export class HotelService {
       .addSelect('COUNT(DISTINCT reviews.id)', 'hotel_total_reviews')
       .groupBy('hotel.id')
       .addGroupBy('favorites.id')
+      .addGroupBy('user.id')
       .addGroupBy('typeRooms.id')
       .addGroupBy('rooms.id');
 
