@@ -129,7 +129,7 @@ export class StripeService {
 
       await this.userService.increaseBalance(partner.id, ticket.amount);
 
-      await this.ticketService.update(ticket.id, user, {
+      await this.ticketService.update(ticket.id, partner, {
         status: TicketStatus.PAID,
         paymentMethods: paymentMethod,
       });
