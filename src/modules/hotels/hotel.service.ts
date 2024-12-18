@@ -402,8 +402,11 @@ export class HotelService {
               const dateCondition =
                 !startDate ||
                 !endDate ||
-                !room.bookingDate?.some(
-                  (date) => date >= startDate && date <= endDate,
+                !Array.isArray(room.bookingDate) ||
+                room.bookingDate.length === 0 ||
+                !room.bookingDate.some(
+                  (date) =>
+                    new Date(date) >= startDate && new Date(date) <= endDate,
                 );
               const capacityCondition = !capacity || room.capacity >= capacity;
               const priceCondition =
