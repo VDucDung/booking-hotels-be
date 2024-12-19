@@ -2,12 +2,15 @@ import { Injectable, NestMiddleware } from '@nestjs/common';
 import { Request, Response, NextFunction } from 'express';
 import * as fs from 'fs';
 import * as path from 'path';
+import * as jwt from 'jsonwebtoken';
+import { JWT } from 'src/constants';
 
 @Injectable()
 export class LoggingMiddleware implements NestMiddleware {
   private readonly logsPath = path.resolve(process.cwd(), 'logs');
   private readonly bugsPath = path.resolve(process.cwd(), 'bugs');
   private readonly isProduction = process.env.NODE_ENV === 'production';
+  private readonly JWT_SECRET = JWT.secretAccess;
 
   constructor() {
     this.ensureDirectoryExistence(this.logsPath, 'logsPath');
@@ -30,7 +33,6 @@ export class LoggingMiddleware implements NestMiddleware {
   }
 
   private getClientIP(req: Request): string {
-    // Nếu đang ở môi trường production
     if (this.isProduction) {
       return (
         (req.headers['cf-connecting-ip'] as string) ||
@@ -44,23 +46,43 @@ export class LoggingMiddleware implements NestMiddleware {
       );
     }
 
-    // Nếu đang ở môi trường development
     const ip = req.ip || 'unknown';
-    // Chuyển đổi IPv6 localhost thành dạng dễ đọc hơn
     if (ip === '::1' || ip === '::ffff:127.0.0.1') {
       return '127.0.0.1';
     }
     return ip;
   }
 
+  private extractToken(req: Request): string | null {
+    const authHeader = req.headers.authorization;
+    if (authHeader && authHeader.startsWith('Bearer ')) {
+      return authHeader.substring(7);
+    }
+    return null;
+  }
+
+  private getUserFromToken(token: string): string {
+    try {
+      const decoded = jwt.verify(token, this.JWT_SECRET) as any;
+      return decoded.email || 'Anonymous';
+    } catch (error) {
+      console.error('Error verifying token:', error.message);
+      return 'Anonymous';
+    }
+  }
+
   private getUserEmail(req: Request): string {
-    return (
-      (req as any).user?.email ||
-      req.body?.email ||
-      (req.headers['x-user-email'] as string) ||
-      (req.headers['user-email'] as string) ||
-      'Anonymous'
-    );
+    const token = this.extractToken(req);
+    if (!token) {
+      if (
+        req.path.includes('/auth/login') ||
+        req.path.includes('/auth/register')
+      ) {
+        return req.body?.email || 'Anonymous';
+      }
+      return 'Anonymous';
+    }
+    return this.getUserFromToken(token);
   }
 
   async use(req: Request, res: Response, next: NextFunction) {
