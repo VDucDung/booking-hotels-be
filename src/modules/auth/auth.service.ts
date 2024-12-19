@@ -8,6 +8,7 @@ import {
   EXPIRES_TOKEN_EMAIL_VERIFY,
   EXPIRES_TOKEN_FOTGOT_PASSWORD,
   EXPIRES_TOKEN_VERIFY_OTP_FORGOT,
+  FULLNAME_DEFAULT,
   JWT,
   nodeEnv,
   SECRET,
@@ -15,6 +16,7 @@ import {
   TOKEN_TYPES,
   tokenMappings,
   URL_HOST,
+  USER_AVATAR_DEFAULT,
 } from 'src/constants';
 import { UserService } from '../users/user.service';
 import { LoginDto } from './dto/login.dto';
@@ -103,7 +105,6 @@ export class AuthService {
       where: { email },
       relations: ['authProviders', 'role'],
     });
-
     if (user) {
       const existingProvider = user.authProviders.find(
         (ap) => ap.provider === provider && ap.providerId === providerId,
@@ -117,11 +118,15 @@ export class AuthService {
         });
       }
     } else {
+      const roleUser = await this.roleService.findOne({
+        where: { name: 'USER' },
+      });
       const newUser = await this.userService.createUser({
         email,
-        fullname: name,
-        avatar: avatar,
+        fullname: name ?? `${FULLNAME_DEFAULT}${new Date().getTime()}`,
+        avatar: avatar ?? USER_AVATAR_DEFAULT,
         password: Math.floor(Math.random() * 100000).toString(),
+        role: roleUser,
       });
 
       await this.authProviderService.create({

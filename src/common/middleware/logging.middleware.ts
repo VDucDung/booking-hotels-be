@@ -7,6 +7,7 @@ import * as path from 'path';
 export class LoggingMiddleware implements NestMiddleware {
   private readonly logsPath = path.resolve(process.cwd(), 'logs');
   private readonly bugsPath = path.resolve(process.cwd(), 'bugs');
+  private readonly isProduction = process.env.NODE_ENV === 'production';
 
   constructor() {
     this.ensureDirectoryExistence(this.logsPath, 'logsPath');
@@ -28,6 +29,40 @@ export class LoggingMiddleware implements NestMiddleware {
     }
   }
 
+  private getClientIP(req: Request): string {
+    // Nếu đang ở môi trường production
+    if (this.isProduction) {
+      return (
+        (req.headers['cf-connecting-ip'] as string) ||
+        (req.headers['x-forwarded-for']
+          ? (req.headers['x-forwarded-for'] as string).split(',')[0].trim()
+          : '') ||
+        (req.headers['x-real-ip'] as string) ||
+        (req.headers['x-client-ip'] as string) ||
+        req.ip ||
+        'unknown'
+      );
+    }
+
+    // Nếu đang ở môi trường development
+    const ip = req.ip || 'unknown';
+    // Chuyển đổi IPv6 localhost thành dạng dễ đọc hơn
+    if (ip === '::1' || ip === '::ffff:127.0.0.1') {
+      return '127.0.0.1';
+    }
+    return ip;
+  }
+
+  private getUserEmail(req: Request): string {
+    return (
+      (req as any).user?.email ||
+      req.body?.email ||
+      (req.headers['x-user-email'] as string) ||
+      (req.headers['user-email'] as string) ||
+      'Anonymous'
+    );
+  }
+
   async use(req: Request, res: Response, next: NextFunction) {
     (req as any).bugsPath = this.bugsPath;
     const startTime = Date.now();
@@ -35,8 +70,8 @@ export class LoggingMiddleware implements NestMiddleware {
 
     const date = new Date().toISOString();
     const method = req.method;
-    const ip = req.ip;
-    const user = (req as any).user?.email || 'Anonymous';
+    const ip = this.getClientIP(req);
+    const user = this.getUserEmail(req);
     const originalUrl = req.originalUrl;
 
     const logEntry = {
@@ -47,6 +82,7 @@ export class LoggingMiddleware implements NestMiddleware {
       path: originalUrl,
       query: req.query,
       body: req.body,
+      environment: this.isProduction ? 'production' : 'development',
     };
 
     try {
@@ -83,6 +119,7 @@ export class LoggingMiddleware implements NestMiddleware {
           statusCode: statusCodeFromBody,
           error: responseBody,
           responseTime,
+          environment: this.isProduction ? 'production' : 'development',
         };
 
         try {

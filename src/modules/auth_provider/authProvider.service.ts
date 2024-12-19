@@ -28,21 +28,13 @@ export class AuthProviderService {
     const { userId, provider, providerId } = createAuthProviderDto;
 
     const user = await this.userService.getUserById(userId as number);
-    if (!user) {
-      ErrorHelper.NotFoundException(
-        this.localesService.translate(USER_MESSAGE.USER_NOT_FOUND),
-      );
-    }
 
     const existingAuthProvider = await this.authProviderRepository.findOne({
       where: { provider, providerId },
     });
+
     if (existingAuthProvider) {
-      ErrorHelper.BadRequestException(
-        this.localesService.translate(
-          AUTH_PROVIDER_MESSAGE.AUTH_PROVIDER_EXISTED,
-        ),
-      );
+      return existingAuthProvider;
     }
 
     const authProvider = this.authProviderRepository.create({
