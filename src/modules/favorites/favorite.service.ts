@@ -241,18 +241,15 @@ export class FavoriteService {
     const favorite = await this.findOne({
       where: {
         hotel: { id },
+        user: {
+          id: user.id,
+        },
       },
       relations: ['hotel', 'user'],
     });
     if (!favorite) {
       ErrorHelper.NotFoundException(
         this.localesService.translate(FAVORITE_MESSAGE.FAVORITE_NOT_FOUND),
-      );
-    }
-
-    if ((favorite.user.id as number) !== (user.id as number)) {
-      ErrorHelper.ForbiddenException(
-        this.localesService.translate(AUTH_MESSAGE.NO_PERMISSION),
       );
     }
 
