@@ -86,6 +86,13 @@ export class StripeController {
     return this.stripeService.createConnectedAccount(user);
   }
 
+  @Get('get-dashboard-link')
+  @UseGuards(AuthGuard)
+  @ApiBearerAuth()
+  async getDashboardLink(@UserDecorator() user: User) {
+    return await this.stripeService.getDashboardLink(user.id);
+  }
+
   @Get('account-status')
   @UseGuards(AuthGuard)
   @ApiBearerAuth()

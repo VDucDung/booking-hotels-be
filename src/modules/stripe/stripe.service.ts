@@ -218,6 +218,16 @@ export class StripeService {
     }
   }
 
+  async getDashboardLink(userId: number) {
+    const account = await this.userService.getUserById(userId);
+
+    const loginLink = await this.stripe.accounts.createLoginLink(
+      account.stripeAccountId,
+    );
+
+    return loginLink.url;
+  }
+
   async generateAccountLink(accountId: string) {
     try {
       const accountLink = await this.stripe.accountLinks.create({
