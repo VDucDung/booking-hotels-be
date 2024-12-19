@@ -109,7 +109,7 @@ export class TypeRoomController {
   async update(
     @Param('id') id: number,
     @Body() updateTypeRoomDto: UpdateTypeRoomDto,
-    @UserDecorator() user: any,
+    @UserDecorator() user: User,
   ) {
     return await this.typeRoomService.update(id, updateTypeRoomDto, user);
   }

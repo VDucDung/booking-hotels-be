@@ -57,15 +57,13 @@ export class UserController {
   @Get('me')
   @UseGuards(AuthGuard)
   @HttpCode(HttpStatus.OK)
-  @AuthDecorator([ERole.USER, ERole.ADMIN])
   async getMe(
-    @UserDecorator('id') userId: number,
+    @UserDecorator() user: User,
   ): Promise<{ statusCode: number; message: string; data: User }> {
-    const user = await this.userService.getUserById(userId);
     return {
       statusCode: HttpStatus.OK,
       message: this.localesService.translate(USER_MESSAGE.GET_ME_SUCCESS),
-      data: user,
+      data: await this.userService.getUserById(user.id),
     };
   }
 
