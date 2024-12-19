@@ -25,7 +25,6 @@ import {
   ResetPasswordDto,
   VerifyOTPForgotPasswordDto,
 } from './dto/forgot-password.dto';
-import { ERole } from 'src/enums/roles.enum';
 
 @ApiTags('auth')
 @Controller('auth')
@@ -113,14 +112,9 @@ export class AuthController {
 
     const user = await this.userService.getUserByEmail(payload.email);
 
-    if (user?.isVerify && user?.role.name === ERole.USER) {
+    if (user?.isVerify) {
       return res.redirect(`${URL_HOST.production_fe}/auth/login`);
-    } else if (user?.isVerify && user?.role.name === ERole.PARTNER) {
-      return res.redirect(
-        `${URL_HOST.production_fe}/partnership/signup/stripeAccount`,
-      );
     }
-
     if (isExpired) {
       return res.render('pages/resend-verify-email');
     }
