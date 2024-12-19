@@ -49,18 +49,6 @@ export class FavoriteService {
       );
     }
 
-    const res = await this.favoriteRepository.findOne({
-      where: {
-        hotel: { id: hotelId },
-      },
-    });
-
-    if (res) {
-      ErrorHelper.BadRequestException(
-        this.localesService.translate(FAVORITE_MESSAGE.FAVORITE_EXISTED),
-      );
-    }
-
     const favorite = this.favoriteRepository.create({
       user: user,
       hotel: hotel,
