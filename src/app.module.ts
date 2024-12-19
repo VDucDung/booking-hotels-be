@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { MiddlewareConsumer, Module, RequestMethod } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
@@ -33,6 +33,10 @@ import { StripeModule } from './modules/stripe/stripe.module';
 import { TransactionsModule } from './modules/transactions/transactions.module';
 import { WalletsModule } from './modules/wallets/wallets.module';
 import { DashboardModule } from './modules/dashboard/dashboard.module';
+import { ScheduleModule } from '@nestjs/schedule';
+import { TelegramService } from './modules/telegram/telegram.service';
+import { CronService } from './modules/cron/cron.service';
+import { LoggingMiddleware } from './common/middleware/logging.middleware';
 
 @Module({
   imports: [
@@ -88,8 +92,15 @@ import { DashboardModule } from './modules/dashboard/dashboard.module';
     TransactionsModule,
     WalletsModule,
     DashboardModule,
+    ScheduleModule.forRoot(),
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [AppService, TelegramService, CronService],
 })
-export class AppModule {}
+export class AppModule {
+  configure(consumer: MiddlewareConsumer) {
+    consumer
+      .apply(LoggingMiddleware)
+      .forRoutes({ path: '*', method: RequestMethod.ALL });
+  }
+}
