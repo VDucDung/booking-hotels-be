@@ -245,7 +245,7 @@ export class TicketService {
       );
     }
 
-    if (ticket.room.partner.id !== user.id && user.role.name !== ERole.ADMIN) {
+    if (ticket.room.partner.id !== user.id && ticket.user.id !== user.id) {
       ErrorHelper.ForbiddenException(
         this.localesService.translate(AUTH_MESSAGE.NO_PERMISSION),
       );
