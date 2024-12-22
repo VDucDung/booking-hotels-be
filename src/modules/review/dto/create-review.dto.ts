@@ -44,6 +44,14 @@ export class CreateReviewDto {
   @IsArray({ message: i18nValidationMessage(COMMON_MESSAGE.INVALID) })
   images?: string[];
 
+  @ApiProperty({
+    name: 'files',
+    type: [String],
+    required: false,
+  })
+  @IsOptional()
+  files?: string[];
+
   @IsInt({ message: 'Rating must be an integer.' })
   @Min(1, { message: 'Rating must be at least 1.' })
   @Max(5, { message: 'Rating must not exceed 5.' })

@@ -42,20 +42,22 @@ export class ReviewService {
 
   async create(
     createReviewDto: CreateReviewDto,
-    files: Array<Express.Multer.File>,
+    files?: Array<Express.Multer.File>,
   ): Promise<Review> {
-    let urls: string[] = [];
-
     if (files && files.length > 0) {
-      const uploadPromises = files.map((file) =>
-        this.uploadService.uploadImage(file),
-      );
-      urls = await Promise.all(uploadPromises);
-    } else {
-      urls = [imageDefault];
-    }
+      let urls: string[] = [];
 
-    createReviewDto.images = urls;
+      if (files && files.length > 0) {
+        const uploadPromises = files.map((file) =>
+          this.uploadService.uploadImage(file),
+        );
+        urls = await Promise.all(uploadPromises);
+      } else {
+        urls = [imageDefault];
+      }
+
+      createReviewDto.images = urls;
+    }
 
     const user = await this.userService.getUserById(createReviewDto.userId);
 

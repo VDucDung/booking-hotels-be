@@ -572,6 +572,7 @@ export class DashboardController {
             type: 'string',
             format: 'binary',
           },
+          nullable: true,
         },
         customerName: {
           type: 'string',
@@ -592,7 +593,7 @@ export class DashboardController {
   async createRating(
     @UserDecorator() user: User,
     @Body() createReviewDto: CreateReviewDto,
-    @UploadedFiles() files: Array<Express.Multer.File>,
+    @UploadedFiles() files?: Array<Express.Multer.File>,
   ) {
     createReviewDto.userId = user.id;
     return {
